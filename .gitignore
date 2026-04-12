@@ -3,3 +3,4 @@
 *.md
 bin/model/
 bin/ui/*.class
+bin/main/
