@@ -11,12 +11,16 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
+/**
+ * Factory for reusable card widgets used on metric-heavy screens.
+ */
 public final class UiCards {
 
 	private UiCards() {
 	}
 
 	public static JPanel createGlassStatCard(String title, String subtitle, String iconPath, JLabel valueLabel) {
+		// Shared metric card layout: header, large value, optional subtitle.
 		JPanel panel = new GlassCardPanel(24, new Color(25, 25, 25, 160));
 		panel.setLayout(new BorderLayout());
 		panel.setBorder(BorderFactory.createCompoundBorder(

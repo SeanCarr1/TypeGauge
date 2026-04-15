@@ -16,6 +16,12 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
+/**
+ * Instructions screen explaining the expected user flow for one typing session.
+ *
+ * <p>This panel is informational only and provides a direct navigation action
+ * back to the main menu.
+ */
 public class InstructionsPanel extends JPanel {
 
 	private final TypeGaugeFrame frame;

@@ -21,6 +21,12 @@ import model.FeedbackService;
 import model.SessionStats;
 import model.StatsUtil;
 
+/**
+ * Main application window and UI coordinator.
+ *
+ * <p>Owns global navigation, session lifecycle state, timing updates, and
+ * cross-panel data propagation after each typing run.
+ */
 public class TypeGaugeFrame extends JFrame {
 
 	private static final String CARD_MAIN = "main";
@@ -105,11 +111,13 @@ public class TypeGaugeFrame extends JFrame {
 	}
 
 	public void showMainUi() {
+		// Keep sidebar selection in sync with currently visible card.
 		cardLayout.show(cardPanel, CARD_MAIN);
 		sidebarPanel.setActiveScreen(CARD_MAIN);
 	}
 
 	public void startSession(Difficulty difficulty) {
+		// Session initialization centralizes state reset and target selection.
 		if (difficulty == null) {
 			showDifficultyRequiredDialog();
 			return;
@@ -174,6 +182,7 @@ public class TypeGaugeFrame extends JFrame {
 	}
 
 	public void onTypingStarted() {
+		// Timer starts only once per session, on the first typed character.
 		if (timer != null && timer.isRunning()) {
 			return;
 		}
@@ -195,6 +204,7 @@ public class TypeGaugeFrame extends JFrame {
 	}
 
 	public void finishSession(String finalInput) {
+		// Compute immutable session summary then fan out to dependent screens.
 		stopTimer();
 
 		if (currentTargetText == null || currentDifficulty == null) {
@@ -230,6 +240,7 @@ public class TypeGaugeFrame extends JFrame {
 	}
 
 	public void cancelSession() {
+		// Cancel drops transient session state and routes user back to Home.
 		stopTimer();
 		currentStats = null;
 		currentTargetText = null;
@@ -239,6 +250,7 @@ public class TypeGaugeFrame extends JFrame {
 	}
 
 	public void retry() {
+		// Retry returns to Home to select/start a fresh run.
 		currentStats = null;
 		currentTargetText = null;
 		currentDifficulty = null;

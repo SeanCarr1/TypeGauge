@@ -7,6 +7,12 @@ import java.awt.RenderingHints;
 
 import javax.swing.JPanel;
 
+/**
+ * Lightweight reusable panel that paints a rounded translucent background.
+ *
+ * <p>Other screens compose this class to get a consistent "glass" card look
+ * without duplicating custom paint logic.
+ */
 public class GlassCardPanel extends JPanel {
 
 	private final int arc;

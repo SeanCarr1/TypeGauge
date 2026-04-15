@@ -19,6 +19,12 @@ import javax.swing.border.EmptyBorder;
 import ui.GlassCardPanel;
 import ui.UiButtons;
 
+/**
+ * About screen describing TypeGauge goals and core principles.
+ *
+ * <p>This panel follows the same glass-card visual system used by the rest of
+ * the UI and provides a single back action to return to the dashboard/home flow.
+ */
 public class AboutPanel extends JPanel {
 
 	private final TypeGaugeFrame frame;

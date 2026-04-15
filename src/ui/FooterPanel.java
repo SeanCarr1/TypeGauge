@@ -9,6 +9,12 @@ import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+/**
+ * Persistent footer shown at the bottom of the application frame.
+ *
+ * <p>Contains version text and a short privacy statement to reinforce local-only
+ * processing behavior.
+ */
 public class FooterPanel extends JPanel {
 
 	public FooterPanel() {

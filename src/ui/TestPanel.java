@@ -22,6 +22,12 @@ import javax.swing.text.StyledDocument;
 import model.Difficulty;
 import ui.UiButtons;
 
+/**
+ * Active typing screen that captures keystrokes and streams live session stats.
+ *
+ * <p>The frame starts/stops timing, while this panel owns text input state,
+ * per-character rendering, and completion detection.
+ */
 public class TestPanel extends JPanel {
 
 	private final TypeGaugeFrame frame;
@@ -176,6 +182,7 @@ public class TestPanel extends JPanel {
  
 
 	public void prepareForSession(Difficulty difficulty, String targetText) {
+		// Reset all transient state so each session starts from a clean slate.
 		this.targetText = targetText != null ? targetText : "";
 		this.typingStarted = false;
 		this.sessionId = generateSessionId();
@@ -233,6 +240,7 @@ public class TestPanel extends JPanel {
 		} catch (IllegalArgumentException ignored) {
 		}
 
+		// Session ends when typed input exactly matches the target text.
 		if (!targetText.isEmpty() && currentInput.equals(targetText)) {
 			sessionFinished = true;
 			targetPane.setEnabled(false);
@@ -241,6 +249,8 @@ public class TestPanel extends JPanel {
 	}
 
 	private void renderTargetText(String currentInput) {
+		// Re-render whole line with per-character color coding.
+		// Correct = green, incorrect = red, pending = gray.
 		StyledDocument doc = targetPane.getStyledDocument();
 		try {
 			doc.remove(0, doc.getLength());

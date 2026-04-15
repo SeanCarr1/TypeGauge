@@ -17,6 +17,12 @@ import javax.swing.ImageIcon;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 
+/**
+ * Left-side icon navigation used across all screens.
+ *
+ * <p>The frame owns the active card state; this sidebar reflects that state and
+ * dispatches navigation actions back to the frame.
+ */
 public class SidebarPanel extends JPanel {
 
 	private final TypeGaugeFrame frame;
@@ -199,6 +205,7 @@ public class SidebarPanel extends JPanel {
 	}
 
 	public void updateForStatsAvailable(boolean hasStats) {
+		// Disable result-related routes until at least one test has finished.
 		resultsButton.setEnabled(hasStats);
 		accuracyButton.setEnabled(hasStats);
 		feedbackButton.setEnabled(hasStats);

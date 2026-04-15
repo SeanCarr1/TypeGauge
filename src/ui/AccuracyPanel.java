@@ -21,6 +21,12 @@ import model.SessionStats;
 import ui.GlassCardPanel;
 import ui.UiButtons;
 
+/**
+ * Accuracy analysis screen shown after a session is completed.
+ *
+ * <p>Displays high-level precision metrics plus a character-level visualization
+ * derived from {@code SessionStats}. Navigation leads back to results or main menu.
+ */
 public class AccuracyPanel extends JPanel {
 
 	private final TypeGaugeFrame frame;
@@ -217,6 +223,7 @@ public class AccuracyPanel extends JPanel {
 	}
 
 	public void showStats(SessionStats stats) {
+		// Keep last stats reference for potential future enhancements.
 		lastStats = stats;
 		if (stats == null) {
 			analysisArea.setText("");

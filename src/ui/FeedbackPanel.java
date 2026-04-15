@@ -22,6 +22,12 @@ import model.SessionStats;
 import ui.GlassCardPanel;
 import ui.UiButtons;
 
+/**
+ * Feedback screen that translates numeric stats into coaching-oriented guidance.
+ *
+ * <p>This panel receives both {@code SessionStats} and {@code FeedbackResult}
+ * from the frame coordinator and renders actionable goals for the next run.
+ */
 public class FeedbackPanel extends JPanel {
 
 	private final TypeGaugeFrame frame;
@@ -249,6 +255,7 @@ public class FeedbackPanel extends JPanel {
 	}
 
 	private JPanel createSuggestionCard(Color accentColor, String iconText, String title, String body) {
+		// Small reusable card used in the constructive suggestions section.
 		JPanel card = new GlassCardPanel(18, new Color(20, 20, 20, 200));
 		card.setLayout(new BorderLayout());
 		card.setBorder(new EmptyBorder(12, 16, 12, 16));
@@ -278,6 +285,7 @@ public class FeedbackPanel extends JPanel {
 	}
 
 	public void showFeedback(SessionStats stats, FeedbackResult feedback) {
+		// Defensive guard: clear fields if data is unavailable.
 		if (stats == null || feedback == null) {
 			analysisIntroLabel.setText("");
 			feedbackMessageLabel.setText("");

@@ -18,6 +18,12 @@ import ui.GlassCardPanel;
 import ui.UiCards;
 import ui.UiButtons;
 
+/**
+ * Results dashboard displayed after a typing session ends.
+ *
+ * <p>Shows core metrics (speed, accuracy, errors, time) and links to deeper
+ * analysis screens.
+ */
 public class ResultsPanel extends JPanel {
 
 	private final TypeGaugeFrame frame;
@@ -200,6 +206,7 @@ public class ResultsPanel extends JPanel {
 	}
 
 	public void showStats(SessionStats stats) {
+		// Guard against accidental navigation before any session is available.
 		if (stats == null) {
 			return;
 		}

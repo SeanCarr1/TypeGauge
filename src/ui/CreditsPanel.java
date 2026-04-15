@@ -16,6 +16,12 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
+/**
+ * Credits screen listing project contributors and course context.
+ *
+ * <p>Uses the same card treatment as the instructions screen and exposes a
+ * single action to return to the main menu.
+ */
 public class CreditsPanel extends JPanel {
 
 	private final TypeGaugeFrame frame;

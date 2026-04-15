@@ -10,12 +10,19 @@ import java.awt.RenderingHints;
 import javax.swing.JButton;
 import javax.swing.border.EmptyBorder;
 
+/**
+ * Factory for consistently styled primary action buttons.
+ *
+ * <p>Centralizing button creation ensures all primary controls share
+ * dimensions, typography, cursor, and hover behavior.
+ */
 public final class UiButtons {
 
 	private UiButtons() {
 	}
 
 	public static JButton createPrimaryButton(String text) {
+		// Brand-aligned blue palette used throughout the application.
 		final Color normalColor = new Color(59, 89, 152);
 		final Color hoverColor = new Color(39, 69, 132);
 

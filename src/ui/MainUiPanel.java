@@ -22,6 +22,12 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
+/**
+ * Landing screen shown when the app opens.
+ *
+ * <p>Presents the product identity and primary navigation actions: start,
+ * instructions, credits, and exit.
+ */
 public class MainUiPanel extends JPanel {
 
 	private final TypeGaugeFrame frame;

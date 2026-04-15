@@ -26,6 +26,12 @@ import model.Difficulty;
 import ui.UiIcons;
 import ui.UiButtons;
 
+/**
+ * Home screen where the user chooses a typing difficulty and starts a session.
+ *
+ * <p>The panel is composed of a headline section, three difficulty cards, and
+ * a bottom callout card with a quick return-to-main action.
+ */
 public class HomePanel extends JPanel {
 
 	private final TypeGaugeFrame frame;
@@ -86,6 +92,7 @@ public class HomePanel extends JPanel {
 	}
 
 	private JPanel buildCardsPanel() {
+		// Difficulty cards are implemented as clickable buttons for direct start.
 		JPanel cardsPanel = new JPanel(new GridLayout(1, 3, 20, 0));
 		cardsPanel.setBorder(BorderFactory.createEmptyBorder(40, 0, 20, 0));
 		cardsPanel.setOpaque(false);
@@ -226,6 +233,7 @@ public class HomePanel extends JPanel {
 	}
 
 	private JButton createDifficultyCard(String title, String description, Difficulty difficulty, String iconPath) {
+		// Custom-painted card button keeps visuals consistent with glass UI theme.
 		JButton button = new JButton() {
 			@Override
 			protected void paintComponent(Graphics g) {
@@ -297,6 +305,6 @@ public class HomePanel extends JPanel {
 	}
 
 	public void resetSelection() {
-		// No explicit selection to clear when using cards that start sessions directly.
+		// No persistent selection exists; clicking a card immediately starts a session.
 	}
 }
