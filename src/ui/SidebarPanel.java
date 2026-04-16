@@ -28,6 +28,7 @@ public class SidebarPanel extends JPanel {
 	private final TypeGaugeFrame frame;
 
 	private final JButton mainButton;
+	private final JButton featureHubButton;
 	private final JButton homeButton;
 	private final JButton testButton;
 	private final JButton resultsButton;
@@ -59,6 +60,7 @@ public class SidebarPanel extends JPanel {
 		navPanel.setLayout(new BoxLayout(navPanel, BoxLayout.Y_AXIS));
 
 		mainButton = createNavButton("/ui/icons/logo.png");
+		featureHubButton = createNavButton("/ui/icons/choose.png");
 		homeButton = createNavButton("/ui/icons/nav_home.png");
 		testButton = createNavButton("/ui/icons/nav_target.png");
 		resultsButton = createNavButton("/ui/icons/nav_check.png");
@@ -67,6 +69,7 @@ public class SidebarPanel extends JPanel {
 		aboutButton = createNavButton("/ui/icons/nav_info.png");
 
 		mainButton.setToolTipText("Main menu");
+		featureHubButton.setToolTipText("Feature Hub");
 		homeButton.setToolTipText("Home");
 		testButton.setToolTipText("Test");
 		resultsButton.setToolTipText("Results");
@@ -77,6 +80,10 @@ public class SidebarPanel extends JPanel {
 		mainButton.addActionListener(e -> {
 			setActiveButton(mainButton);
 			frame.showMainUi();
+		});
+		featureHubButton.addActionListener(e -> {
+			setActiveButton(featureHubButton);
+			frame.showFeatureHub();
 		});
 		homeButton.addActionListener(e -> {
 			setActiveButton(homeButton);
@@ -104,6 +111,8 @@ public class SidebarPanel extends JPanel {
 		});
 
 		navPanel.add(wrapNavButton(mainButton));
+		navPanel.add(Box.createVerticalStrut(40));
+		navPanel.add(wrapNavButton(featureHubButton));
 		navPanel.add(Box.createVerticalStrut(40));
 		navPanel.add(wrapNavButton(homeButton));
 		navPanel.add(Box.createVerticalStrut(40));
@@ -189,6 +198,8 @@ public class SidebarPanel extends JPanel {
 	public void setActiveScreen(String screenId) {
 		if ("main".equals(screenId)) {
 			setActiveButton(mainButton);
+		} else if ("featureHub".equals(screenId)) {
+			setActiveButton(featureHubButton);
 		} else if ("home".equals(screenId)) {
 			setActiveButton(homeButton);
 		} else if ("test".equals(screenId)) {
