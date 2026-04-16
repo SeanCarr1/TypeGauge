@@ -48,8 +48,24 @@ public class HomePanel extends JPanel {
 	}
 
 	private void buildTitleSection() {
-		JPanel titlePanel = new JPanel(new BorderLayout());
+		JPanel titlePanel = new JPanel();
+		titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
 		titlePanel.setOpaque(false);
+
+		JButton returnToMainButton = UiButtons.createPrimaryButton("Return");
+		returnToMainButton.addActionListener(e -> frame.showFeatureHub());
+
+		JButton instructionsButton = UiButtons.createPrimaryButton("Instructions");
+		instructionsButton.addActionListener(e -> frame.showDifficultySelectionInstructions());
+
+		JPanel topRow = new JPanel(new BorderLayout());
+		topRow.setOpaque(false);
+		topRow.setAlignmentX(LEFT_ALIGNMENT);
+		topRow.add(returnToMainButton, BorderLayout.WEST);
+		topRow.add(instructionsButton, BorderLayout.EAST);
+
+		titlePanel.add(topRow);
+		titlePanel.add(Box.createVerticalStrut(20));
 
 		JLabel precisionLabel = new JLabel("Precision", SwingConstants.LEFT);
 		precisionLabel.setFont(precisionLabel.getFont().deriveFont(64f));
@@ -61,6 +77,7 @@ public class HomePanel extends JPanel {
 
 		JPanel headingPanel = new JPanel(new GridLayout(2, 1));
 		headingPanel.setOpaque(false);
+		headingPanel.setAlignmentX(LEFT_ALIGNMENT);
 		headingPanel.add(precisionLabel);
 		headingPanel.add(performanceLabel);
 
@@ -68,9 +85,10 @@ public class HomePanel extends JPanel {
 			"The ultimate typing diagnostic tool. Measure your speed, \nanalyze your accuracy, and master your keystrokes.");
 		subtitleLabel.setForeground(Color.LIGHT_GRAY);
 		subtitleLabel.setFont(subtitleLabel.getFont().deriveFont(16f));
+		subtitleLabel.setAlignmentX(LEFT_ALIGNMENT);
 
-		titlePanel.add(headingPanel, BorderLayout.NORTH);
-		titlePanel.add(subtitleLabel, BorderLayout.SOUTH);
+		titlePanel.add(headingPanel);
+		titlePanel.add(subtitleLabel);
 
 		add(titlePanel, BorderLayout.NORTH);
 	}
@@ -222,13 +240,7 @@ public class HomePanel extends JPanel {
 
 		bottomPanel.add(readyCard, BorderLayout.CENTER);
 
-		JButton returnToMainButton = UiButtons.createPrimaryButton("Return to Main");
-		returnToMainButton.addActionListener(e -> frame.showMainUi());
-		JPanel buttonRow = new JPanel(new BorderLayout());
-		buttonRow.setOpaque(false);
-		buttonRow.setBorder(new EmptyBorder(8, 0, 0, 0));
-		buttonRow.add(returnToMainButton, BorderLayout.WEST);
-		bottomPanel.add(buttonRow, BorderLayout.SOUTH);
+		// Return action is intentionally placed in the top-left header area.
 		return bottomPanel;
 	}
 
@@ -290,7 +302,7 @@ public class HomePanel extends JPanel {
 		content.add(descLabel);
 
 		button.add(content, BorderLayout.CENTER);
-		button.addActionListener(e -> frame.startSession(difficulty));
+		button.addActionListener(e -> frame.selectDifficulty(difficulty));
 		return button;
 	}
 
