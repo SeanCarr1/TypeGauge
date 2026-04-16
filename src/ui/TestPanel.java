@@ -74,13 +74,16 @@ public class TestPanel extends JPanel {
 
 		headerPanel.add(leftHeader, BorderLayout.WEST);
 
-		JButton cancelButton = UiButtons.createPrimaryButton("Cancel");
-		cancelButton.addActionListener(e -> frame.cancelSession());
-		JButton returnToMainButton = UiButtons.createPrimaryButton("Return to Main");
-		returnToMainButton.addActionListener(e -> frame.showMainUi());
+		JButton startButton = UiButtons.createPrimaryButton("Start");
+		startButton.addActionListener(e -> frame.startSessionFromSelectedDifficulty());
+		JButton instructionsButton = UiButtons.createPrimaryButton("Instructions");
+		instructionsButton.addActionListener(e -> frame.showTestInstructions());
+		JButton returnToMainButton = UiButtons.createPrimaryButton("Return");
+		returnToMainButton.addActionListener(e -> frame.showFeatureHub());
 		JPanel headerRight = new JPanel();
 		headerRight.setOpaque(false);
-		headerRight.add(cancelButton);
+		headerRight.add(startButton);
+		headerRight.add(instructionsButton);
 		headerRight.add(returnToMainButton);
 		headerPanel.add(headerRight, BorderLayout.EAST);
 
