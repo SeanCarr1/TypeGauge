@@ -3,17 +3,24 @@ package ui;
 import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.ImageIcon;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Timer;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 
 import model.Difficulty;
 import model.FeedbackResult;
@@ -31,6 +38,7 @@ public class TypeGaugeFrame extends JFrame {
 
 	private static final String CARD_MAIN = "main";
 	private static final String CARD_HOME = "home";
+	private static final String CARD_FEATURE_HUB = "featureHub";
 	private static final String CARD_TEST = "test";
 	private static final String CARD_RESULTS = "results";
 	private static final String CARD_ACCURACY = "accuracy";
@@ -48,6 +56,7 @@ public class TypeGaugeFrame extends JFrame {
 
 	private final MainUiPanel mainUiPanel;
 	private final HomePanel homePanel;
+	private final FeatureHubPanel featureHubPanel;
 	private final TestPanel testPanel;
 	private final ResultsPanel resultsPanel;
 	private final AccuracyPanel accuracyPanel;
@@ -56,7 +65,7 @@ public class TypeGaugeFrame extends JFrame {
 	private final InstructionsPanel instructionsPanel;
 	private final CreditsPanel creditsPanel;
 
-	private Difficulty currentDifficulty;
+	private Difficulty currentDifficulty = Difficulty.BEGINNER;
 	private String currentTargetText;
 	private long startTimeMillis;
 	private Timer timer;
@@ -80,6 +89,7 @@ public class TypeGaugeFrame extends JFrame {
 
 		mainUiPanel = new MainUiPanel(this);
 		homePanel = new HomePanel(this);
+		featureHubPanel = new FeatureHubPanel(this);
 		testPanel = new TestPanel(this);
 		resultsPanel = new ResultsPanel(this);
 		accuracyPanel = new AccuracyPanel(this);
@@ -90,6 +100,7 @@ public class TypeGaugeFrame extends JFrame {
 
 		cardPanel.add(mainUiPanel, CARD_MAIN);
 		cardPanel.add(homePanel, CARD_HOME);
+		cardPanel.add(featureHubPanel, CARD_FEATURE_HUB);
 		cardPanel.add(testPanel, CARD_TEST);
 		cardPanel.add(resultsPanel, CARD_RESULTS);
 		cardPanel.add(accuracyPanel, CARD_ACCURACY);
@@ -118,12 +129,9 @@ public class TypeGaugeFrame extends JFrame {
 
 	public void startSession(Difficulty difficulty) {
 		// Session initialization centralizes state reset and target selection.
-		if (difficulty == null) {
-			showDifficultyRequiredDialog();
-			return;
-		}
-		this.currentDifficulty = difficulty;
-		this.currentTargetText = difficulty.getRandomSampleText();
+		Difficulty effectiveDifficulty = difficulty != null ? difficulty : Difficulty.BEGINNER;
+		this.currentDifficulty = effectiveDifficulty;
+		this.currentTargetText = effectiveDifficulty.getRandomSampleText();
 		this.elapsedSeconds = 0;
 		this.currentStats = null;
 
@@ -131,16 +139,68 @@ public class TypeGaugeFrame extends JFrame {
 		showTest();
 	}
 
-	private void showDifficultyRequiredDialog() {
-		JOptionPane.showMessageDialog(this,
-			"Please select a difficulty before starting.",
-			"Difficulty Required",
-			JOptionPane.WARNING_MESSAGE);
+	public void startSessionFromSelectedDifficulty() {
+		startSession(currentDifficulty);
+	}
+
+	public void selectDifficulty(Difficulty difficulty) {
+		Difficulty effectiveDifficulty = difficulty != null ? difficulty : Difficulty.BEGINNER;
+
+		// Persist selected difficulty in memory for the current app session only.
+		this.currentDifficulty = effectiveDifficulty;
+		this.currentTargetText = null;
+		showDifficultySelectedDialog(effectiveDifficulty);
+	}
+
+	private void showDifficultySelectedDialog(Difficulty difficulty) {
+		JDialog dialog = new JDialog(this, "Selection Saved", true);
+		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+
+		JPanel shell = new JPanel(new BorderLayout());
+		shell.setBackground(new Color(10, 10, 12));
+		shell.setBorder(new EmptyBorder(14, 14, 14, 14));
+
+		JPanel card = new GlassCardPanel(20, new Color(25, 25, 25, 220));
+		card.setLayout(new BorderLayout());
+		card.setBorder(BorderFactory.createCompoundBorder(
+			new LineBorder(new Color(80, 80, 80, 140), 1, true),
+			new EmptyBorder(16, 16, 16, 16)));
+
+		JLabel title = new JLabel("Difficulty Selected");
+		title.setForeground(new Color(90, 150, 255));
+		title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
+
+		JLabel message = new JLabel("You selected: " + difficulty.name() + ". You can start the test anytime.");
+		message.setForeground(Color.WHITE);
+		message.setBorder(new EmptyBorder(8, 0, 0, 0));
+
+		JButton continueButton = UiButtons.createPrimaryButton("Continue");
+		continueButton.addActionListener(e -> dialog.dispose());
+		JPanel actions = new JPanel(new BorderLayout());
+		actions.setOpaque(false);
+		actions.setBorder(new EmptyBorder(14, 0, 0, 0));
+		actions.add(continueButton, BorderLayout.EAST);
+
+		card.add(title, BorderLayout.NORTH);
+		card.add(message, BorderLayout.CENTER);
+		card.add(actions, BorderLayout.SOUTH);
+
+		shell.add(card, BorderLayout.CENTER);
+		dialog.setContentPane(shell);
+		dialog.pack();
+		dialog.setResizable(false);
+		dialog.setLocationRelativeTo(this);
+		dialog.setVisible(true);
 	}
 
 	public void showHome() {
 		cardLayout.show(cardPanel, CARD_HOME);
 		sidebarPanel.setActiveScreen(CARD_HOME);
+	}
+
+	public void showFeatureHub() {
+		cardLayout.show(cardPanel, CARD_FEATURE_HUB);
+		sidebarPanel.setActiveScreen(CARD_FEATURE_HUB);
 	}
 
 	public void showTest() {
@@ -235,8 +295,131 @@ public class TypeGaugeFrame extends JFrame {
 		FeedbackResult feedback = FeedbackService.getFeedback(wpm, accuracy);
 		feedbackPanel.showFeedback(stats, feedback);
 		sidebarPanel.updateForStatsAvailable(true);
+		showSessionCompletedDialog(stats);
+	}
 
-		showResults();
+	private void showSessionCompletedDialog(SessionStats stats) {
+		JDialog dialog = new JDialog(this, "Session Complete", true);
+		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+
+		JPanel shell = new JPanel(new BorderLayout());
+		shell.setBackground(new Color(10, 10, 12));
+		shell.setBorder(new EmptyBorder(14, 14, 14, 14));
+
+		JPanel card = new GlassCardPanel(20, new Color(25, 25, 25, 220));
+		card.setLayout(new BorderLayout());
+		card.setBorder(BorderFactory.createCompoundBorder(
+			new LineBorder(new Color(80, 80, 80, 140), 1, true),
+			new EmptyBorder(16, 16, 16, 16)));
+
+		JLabel title = new JLabel("Session Completed");
+		title.setForeground(new Color(90, 150, 255));
+		title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
+
+		String messageText = "WPM: " + stats.getWpm() + "  |  Accuracy: " + stats.getAccuracy() + "%";
+		JLabel message = new JLabel(messageText);
+		message.setForeground(Color.WHITE);
+		message.setBorder(new EmptyBorder(8, 0, 0, 0));
+
+		JButton continueButton = UiButtons.createPrimaryButton("Return");
+		continueButton.addActionListener(e -> {
+			dialog.dispose();
+			showFeatureHub();
+		});
+		JPanel actions = new JPanel(new BorderLayout());
+		actions.setOpaque(false);
+		actions.setBorder(new EmptyBorder(14, 0, 0, 0));
+		actions.add(continueButton, BorderLayout.EAST);
+
+		card.add(title, BorderLayout.NORTH);
+		card.add(message, BorderLayout.CENTER);
+		card.add(actions, BorderLayout.SOUTH);
+
+		shell.add(card, BorderLayout.CENTER);
+		dialog.setContentPane(shell);
+		dialog.pack();
+		dialog.setResizable(false);
+		dialog.setLocationRelativeTo(this);
+		dialog.setVisible(true);
+	}
+
+	public void showTestInstructions() {
+		String body = "<html><div style='width:560px;'>"
+			+ "<ol style='margin-top:8px;'>"
+			+ "<li>(Optional) Select a difficulty in <b>Difficulty Selection</b>. If you skip this, the default is <b>BEGINNER</b>.</li>"
+			+ "<li>Press <b>Start</b> to load the typing session text.</li>"
+			+ "<li>Click inside the typing area to focus it.</li>"
+			+ "<li>Start typing. The timer begins on your <b>first</b> character.</li>"
+			+ "<li>Use <b>Backspace</b> to correct mistakes as you type.</li>"
+			+ "<li>Finish by typing the full text exactly. You will see a <b>&quot;Session Completed&quot;</b> popup.</li>"
+			+ "<li>Press <b>Return</b> to exit the feature.</li>"
+			+ "</ol>"
+			+ "</div></html>";
+
+		showInstructionsDialog("How to use Test Feature", body);
+	}
+
+	public void showDifficultySelectionInstructions() {
+		String body = "<html><div style='width:560px;'>"
+			+ "<ol style='margin-top:8px;'>"
+			+ "<li>Open <b>Difficulty Selection</b> from the Feature Hub.</li>"
+			+ "<li>Click a difficulty card (<b>Beginner</b>, <b>Intermediate</b>, or <b>Advanced</b>) to <b>save</b> your selection.</li>"
+			+ "<li>Confirm the <b>&quot;Difficulty Selected&quot;</b> popup.</li>"
+			+ "<li>When you're ready to type, open the <b>Test</b> feature and press <b>Start</b>.</li>"
+			+ "<li>Press <b>Return</b> to exit the feature.</li>"
+			+ "</ol>"
+			+ "</div></html>";
+
+		showInstructionsDialog("How to use Difficulty Selection Feature", body);
+	}
+
+	private void showInstructionsDialog(String titleText, String htmlBody) {
+		JDialog dialog = new JDialog(this, "Instructions", true);
+		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+
+		JPanel shell = new JPanel(new BorderLayout());
+		shell.setBackground(new Color(10, 10, 12));
+		shell.setBorder(new EmptyBorder(14, 14, 14, 14));
+
+		JPanel card = new GlassCardPanel(20, new Color(25, 25, 25, 220));
+		card.setLayout(new BorderLayout());
+		card.setBorder(BorderFactory.createCompoundBorder(
+			new LineBorder(new Color(80, 80, 80, 140), 1, true),
+			new EmptyBorder(16, 16, 16, 16)));
+
+		JLabel title = new JLabel(titleText);
+		title.setForeground(new Color(90, 150, 255));
+		title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
+
+		JLabel message = new JLabel(htmlBody);
+		message.setForeground(new Color(230, 230, 230));
+		message.setBorder(new EmptyBorder(10, 0, 0, 0));
+		message.setFont(message.getFont().deriveFont(14f));
+
+		JButton closeButton = UiButtons.createPrimaryButton("Close");
+		closeButton.addActionListener(e -> dialog.dispose());
+		JPanel actions = new JPanel(new BorderLayout());
+		actions.setOpaque(false);
+		actions.setBorder(new EmptyBorder(14, 0, 0, 0));
+		actions.add(closeButton, BorderLayout.EAST);
+
+		card.add(title, BorderLayout.NORTH);
+		card.add(message, BorderLayout.CENTER);
+		card.add(actions, BorderLayout.SOUTH);
+
+		shell.add(card, BorderLayout.CENTER);
+		dialog.setContentPane(shell);
+		dialog.pack();
+		dialog.setResizable(false);
+		dialog.setLocationRelativeTo(this);
+
+		// ESC closes the modal.
+		dialog.getRootPane().registerKeyboardAction(
+			e -> dialog.dispose(),
+			javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0),
+			javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+		dialog.setVisible(true);
 	}
 
 	public void cancelSession() {
@@ -244,7 +427,7 @@ public class TypeGaugeFrame extends JFrame {
 		stopTimer();
 		currentStats = null;
 		currentTargetText = null;
-		currentDifficulty = null;
+		currentDifficulty = Difficulty.BEGINNER;
 		sidebarPanel.updateForStatsAvailable(false);
 		showHome();
 	}
@@ -253,7 +436,7 @@ public class TypeGaugeFrame extends JFrame {
 		// Retry returns to Home to select/start a fresh run.
 		currentStats = null;
 		currentTargetText = null;
-		currentDifficulty = null;
+		currentDifficulty = Difficulty.BEGINNER;
 		homePanel.resetSelection();
 		sidebarPanel.updateForStatsAvailable(false);
 		showHome();
