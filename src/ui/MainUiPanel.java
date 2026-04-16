@@ -127,7 +127,7 @@ public class MainUiPanel extends JPanel {
 		gbc.insets = new Insets(0, 0, 0, 0);
 		add(card, gbc);
 
-		startButton.addActionListener(e -> frame.showHome());
+		startButton.addActionListener(e -> frame.showFeatureHub());
 		instructionsButton.addActionListener(e -> frame.showInstructions());
 		creditsButton.addActionListener(e -> frame.showCredits());
 		exitButton.addActionListener(e -> frame.exitApplication());
