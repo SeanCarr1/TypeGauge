@@ -10,10 +10,9 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -21,7 +20,6 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-
 import model.Difficulty;
 import model.FeedbackResult;
 import model.FeedbackService;
@@ -91,7 +89,8 @@ public class TypeGaugeFrame extends JFrame {
 		homePanel = new HomePanel(this);
 		featureHubPanel = new FeatureHubPanel(this);
 		testPanel = new TestPanel(this);
-		resultsPanel = new ResultsPanel(this);
+		resultsPanel = new ResultsPanel(this::showMainUi, this::retry, this::showAccuracy, this::showFeedback,
+			this::showResultsInstructions);
 		accuracyPanel = new AccuracyPanel(this);
 		feedbackPanel = new FeedbackPanel(this);
 		aboutPanel = new AboutPanel(this);
@@ -115,7 +114,8 @@ public class TypeGaugeFrame extends JFrame {
 		backgroundPanel.add(cardPanel, BorderLayout.CENTER);
 		backgroundPanel.add(footerPanel, BorderLayout.SOUTH);
 		setContentPane(backgroundPanel);
-		showMainUi();
+		cardLayout.show(cardPanel, CARD_MAIN);
+		sidebarPanel.setActiveScreen(CARD_MAIN);
 
 		pack();
 		setLocationRelativeTo(null);
@@ -257,8 +257,7 @@ public class TypeGaugeFrame extends JFrame {
 		EventQueue.invokeLater(() -> {
 			int charsTyped = testPanel.getCurrentInputLength();
 			int wpm = StatsUtil.calculateWpm(charsTyped, elapsedSeconds);
-			int correctCharsLive = testPanel.getCurrentCorrectCharCount();
-			int accuracyLive = StatsUtil.calculateAccuracy(correctCharsLive, Math.max(charsTyped, 1));
+			int accuracyLive = testPanel.getSessionAccuracyPercent();
 			testPanel.updateLiveStats(elapsedSeconds, wpm, accuracyLive);
 		});
 	}
@@ -273,10 +272,9 @@ public class TypeGaugeFrame extends JFrame {
 		}
 
 		int totalChars = currentTargetText.length();
-		int errors = StatsUtil.countErrors(currentTargetText, finalInput);
-		int correctChars = Math.max(0, totalChars - errors);
+		int errors = testPanel.getSessionErrorCount();
 		int wpm = StatsUtil.calculateWpm(totalChars, elapsedSeconds);
-		int accuracy = StatsUtil.calculateAccuracy(correctChars, totalChars);
+		int accuracy = testPanel.getSessionAccuracyPercent();
 
 		SessionStats stats = new SessionStats();
 		stats.setDifficulty(currentDifficulty);
@@ -371,6 +369,30 @@ public class TypeGaugeFrame extends JFrame {
 			+ "</div></html>";
 
 		showInstructionsDialog("How to use Difficulty Selection Feature", body);
+	}
+
+	public void showResultsInstructions() {
+		String body = "<html><div style='width:560px;'>"
+			+ "<ol style='margin-top:8px;'>"
+			+ "<li>Complete a typing session to populate this screen with your latest stats.</li>"
+			+ "<li>Read the top cards: <b>Speed</b>, <b>Accuracy</b>, <b>Errors</b>, and <b>Time</b>.</li>"
+			+ "<li>Use <b>Detailed Analysis</b> to open the Accuracy breakdown.</li>"
+			+ "<li>Use <b>Full Report</b> to open the Feedback screen.</li>"
+			+ "<li>Use <b>Retry Test</b> for a new run, or <b>Return to Main</b> to leave this feature.</li>"
+			+ "<li>Press <b>Close</b> to exit this popup.</li>"
+			+ "</ol>"
+			+ "</div></html>";
+
+		showInstructionsDialog("How to use Results Feature", body);
+	}
+
+	public void showSessionRequiredDialog() {
+		String body = "<html><div style='width:560px;'>"
+			+ "Complete at least one test session first to open this feature. "
+			+ "Go to <b>Test</b>, press <b>Start</b>, finish the passage, then come back to view Results, Accuracy, or Feedback."
+			+ "</div></html>";
+
+		showInstructionsDialog("Session Required", body);
 	}
 
 	private void showInstructionsDialog(String titleText, String htmlBody) {
