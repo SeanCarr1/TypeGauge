@@ -2,24 +2,24 @@ package ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.GridLayout;
 import java.awt.Dimension;
-
+import java.awt.GridLayout;
+import java.util.BitSet;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
-import javax.swing.SwingConstants;
 import javax.swing.JScrollPane;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
+import javax.swing.JTextArea;
+import javax.swing.JTextPane;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
-
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import model.SessionStats;
-
-import ui.GlassCardPanel;
-import ui.UiButtons;
 
 /**
  * Accuracy analysis screen shown after a session is completed.
@@ -29,13 +29,11 @@ import ui.UiButtons;
  */
 public class AccuracyPanel extends JPanel {
 
-	private final TypeGaugeFrame frame;
-	private final JTextArea analysisArea;
-	private SessionStats lastStats;
+	private final JTextPane analysisArea;
+	private final JTextArea strengthsTextArea;
+	private final JTextArea hotspotsTextArea;
 
 	public AccuracyPanel(TypeGaugeFrame frame) {
-		this.frame = frame;
-
 		setLayout(new BorderLayout());
 		setBorder(new EmptyBorder(200, 400, 40, 400));
 		setOpaque(false);
@@ -48,12 +46,12 @@ public class AccuracyPanel extends JPanel {
 		JPanel headerLeft = new JPanel(new GridLayout(2, 1));
 		headerLeft.setOpaque(false);
 
-		JLabel smallTitle = new JLabel("ACCURACY ANALYZER", SwingConstants.LEFT);
+		JLabel smallTitle = new JLabel("SKILL INSIGHTS", SwingConstants.LEFT);
 		smallTitle.setForeground(new Color(90, 150, 255));
 		smallTitle.setFont(smallTitle.getFont().deriveFont(14f));
 		headerLeft.add(smallTitle);
 
-		JLabel title = new JLabel("Precision Breakdown", SwingConstants.LEFT);
+		JLabel title = new JLabel("Accuracy Analyzer", SwingConstants.LEFT);
 		title.setForeground(Color.WHITE);
 		title.setFont(title.getFont().deriveFont(36f));
 		headerLeft.add(title);
@@ -86,44 +84,6 @@ public class AccuracyPanel extends JPanel {
 		// Cap the card height so it doesn't fill the entire window
 		card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 460));
 
-		// Top row inside card: Overall Accuracy and Total Errors
-		JPanel topRow = new JPanel(new BorderLayout());
-		topRow.setOpaque(false);
-		topRow.setBorder(new EmptyBorder(0, 0, 16, 0));
-
-		JPanel overallPanel = new JPanel(new GridLayout(2, 1));
-		overallPanel.setOpaque(false);
-
-		JLabel overallLabel = new JLabel("OVERALL ACCURACY", SwingConstants.LEFT);
-		overallLabel.setForeground(new Color(160, 160, 160));
-		overallLabel.setFont(overallLabel.getFont().deriveFont(12f));
-		overallPanel.add(overallLabel);
-
-		JLabel overallValue = new JLabel("0%", SwingConstants.LEFT);
-		overallValue.setForeground(new Color(0, 220, 140));
-		overallValue.setFont(overallValue.getFont().deriveFont(48f));
-		overallPanel.add(overallValue);
-
-		topRow.add(overallPanel, BorderLayout.WEST);
-
-		JPanel errorsPanel = new JPanel(new GridLayout(2, 1));
-		errorsPanel.setOpaque(false);
-		errorsPanel.setBorder(new EmptyBorder(0, 0, 0, 8));
-
-		JLabel errorsLabel = new JLabel("TOTAL ERRORS", SwingConstants.RIGHT);
-		errorsLabel.setForeground(new Color(160, 160, 160));
-		errorsLabel.setFont(errorsLabel.getFont().deriveFont(12f));
-		errorsPanel.add(errorsLabel);
-
-		JLabel errorsValue = new JLabel("0", SwingConstants.RIGHT);
-		errorsValue.setForeground(new Color(240, 80, 80));
-		errorsValue.setFont(errorsValue.getFont().deriveFont(48f));
-		errorsPanel.add(errorsValue);
-
-		topRow.add(errorsPanel, BorderLayout.EAST);
-
-		card.add(topRow, BorderLayout.NORTH);
-
 		// Middle: Character-by-character analysis area
 		JPanel middle = new JPanel(new BorderLayout());
 		middle.setOpaque(false);
@@ -134,13 +94,11 @@ public class AccuracyPanel extends JPanel {
 		cbcLabel.setFont(cbcLabel.getFont().deriveFont(18f));
 		middle.add(cbcLabel, BorderLayout.NORTH);
 
-		analysisArea = new JTextArea();
+		analysisArea = new JTextPane();
 		analysisArea.setEditable(false);
-		analysisArea.setLineWrap(true);
-		analysisArea.setWrapStyleWord(true);
+		analysisArea.setOpaque(false);
 		analysisArea.setFont(analysisArea.getFont().deriveFont(24f));
 		analysisArea.setForeground(new Color(0, 220, 140));
-		analysisArea.setOpaque(false);
 		analysisArea.setBorder(new EmptyBorder(16, 16, 16, 16));
 
 		JScrollPane analysisScroll = new JScrollPane(analysisArea);
@@ -175,11 +133,9 @@ public class AccuracyPanel extends JPanel {
 		strengthsText.setWrapStyleWord(true);
 		strengthsText.setForeground(new Color(200, 200, 200));
 		strengthsText.setFont(strengthsText.getFont().deriveFont(14f));
-		strengthsText.setText("Consistent rhythm on common character sequences\n"
-			+ "High accuracy on vowel-heavy words\n"
-			+ "Strong performance on the first half of the text");
+		strengthsTextArea = strengthsText;
 
-		strengthsCard.add(strengthsText, BorderLayout.CENTER);
+		strengthsCard.add(strengthsTextArea, BorderLayout.CENTER);
 
 		JPanel hotspotsCard = new GlassCardPanel(24, new Color(25, 25, 25, 160));
 		hotspotsCard.setLayout(new BorderLayout());
@@ -199,11 +155,9 @@ public class AccuracyPanel extends JPanel {
 		hotspotsText.setWrapStyleWord(true);
 		hotspotsText.setForeground(new Color(200, 200, 200));
 		hotspotsText.setFont(hotspotsText.getFont().deriveFont(14f));
-		hotspotsText.setText("Punctuation and special characters\n"
-			+ "Double-letter transitions\n"
-			+ "End-of-sentence fatigue detected");
+		hotspotsTextArea = hotspotsText;
 
-		hotspotsCard.add(hotspotsText, BorderLayout.CENTER);
+		hotspotsCard.add(hotspotsTextArea, BorderLayout.CENTER);
 
 		bottomRow.add(strengthsCard);
 		bottomRow.add(hotspotsCard);
@@ -217,35 +171,139 @@ public class AccuracyPanel extends JPanel {
 		center.add(Box.createVerticalGlue());
 
 		add(center, BorderLayout.CENTER);
-
-		// Store labels we need to update later via showStats
-		this.lastStats = null;
+		strengthsTextArea.setText("Waiting for a completed session.");
+		hotspotsTextArea.setText("Waiting for a completed session.");
 	}
 
 	public void showStats(SessionStats stats) {
-		// Keep last stats reference for potential future enhancements.
-		lastStats = stats;
 		if (stats == null) {
-			analysisArea.setText("");
+			renderTargetText("", "", new BitSet());
+			strengthsTextArea.setText("No session data available yet.");
+			hotspotsTextArea.setText("No session data available yet.");
 			return;
 		}
-		// Build a simple character-by-character string: correct chars as typed, incorrect shown from target
-		StringBuilder sb = new StringBuilder();
-		String target = stats.getTargetText() != null ? stats.getTargetText() : "";
-		String input = stats.getUserInput() != null ? stats.getUserInput() : "";
-		int length = Math.min(target.length(), input.length());
+		// Render the target text itself so the user can compare it against their input.
+		renderTargetText(stats.getTargetText(), stats.getUserInput(), stats.getMistakenCharacterIndexes());
+		strengthsTextArea.setText(buildStrengthsText(stats));
+		hotspotsTextArea.setText(buildHotspotsText(stats));
+	}
+
+	private void renderTargetText(String targetText, String userInput, BitSet mistakenCharacterIndexes) {
+		// Rebuild the styled document so the target passage stays visible and history-based mistakes stay red.
+		StyledDocument document = analysisArea.getStyledDocument();
+		try {
+			document.remove(0, document.getLength());
+		} catch (javax.swing.text.BadLocationException ignored) {
+		}
+
+		String safeTarget = targetText != null ? targetText : "";
+		String safeInput = userInput != null ? userInput : "";
+		BitSet safeMistakes = mistakenCharacterIndexes != null ? mistakenCharacterIndexes : new BitSet();
+		int length = safeTarget.length();
 		for (int i = 0; i < length; i++) {
-			char c = input.charAt(i);
-			if (c == target.charAt(i)) {
-				sb.append(c);
+			char targetChar = safeTarget.charAt(i);
+			SimpleAttributeSet attributes = new SimpleAttributeSet();
+			boolean wasMistaken = safeMistakes.get(i);
+			if (wasMistaken) {
+				StyleConstants.setForeground(attributes, new Color(230, 80, 80));
+			} else if (i < safeInput.length()) {
+				if (safeInput.charAt(i) == targetChar) {
+					StyleConstants.setForeground(attributes, new Color(80, 200, 140));
+				} else {
+					StyleConstants.setForeground(attributes, new Color(230, 80, 80));
+				}
 			} else {
-				// Use target char for visual clarity when showing mistakes
-				sb.append(target.charAt(i));
+				StyleConstants.setForeground(attributes, new Color(180, 180, 180));
+			}
+
+			String displayChar;
+			if (targetChar == ' ' && wasMistaken) {
+				displayChar = "·";
+			} else {
+				displayChar = String.valueOf(targetChar);
+			}
+			try {
+				document.insertString(document.getLength(), displayChar, attributes);
+			} catch (javax.swing.text.BadLocationException ignored) {
 			}
 		}
-		if (target.length() > length) {
-			sb.append(target.substring(length));
+	}
+
+	private String buildStrengthsText(SessionStats stats) {
+		StringBuilder strengths = new StringBuilder();
+		strengths.append("Steady control on: ");
+		if (stats.getAccuracy() >= 90) {
+			strengths.append("overall accuracy, ");
 		}
-		analysisArea.setText(sb.toString());
+		if (stats.getWpm() >= 30) {
+			strengths.append("typing pace, ");
+		}
+		if (stats.getErrors() <= 3) {
+			strengths.append("error control, ");
+		}
+		strengths.append("and consistent focus.\n");
+		strengths.append("Best handled category: ").append(getBestCategoryLabel(stats)).append("\n");
+		strengths.append("Performance grade: ").append(stats.getPerformanceGrade() != null ? stats.getPerformanceGrade() : "-");
+		return strengths.toString();
+	}
+
+	private String buildHotspotsText(SessionStats stats) {
+		StringBuilder hotspots = new StringBuilder();
+		hotspots.append("Letters: ").append(stats.getLetterErrors()).append("\n");
+		hotspots.append("Numbers: ").append(stats.getNumberErrors()).append("\n");
+		hotspots.append("Punctuation: ").append(stats.getPunctuationErrors()).append("\n");
+		hotspots.append("Spacing: ").append(stats.getSpacingErrors()).append("\n\n");
+		hotspots.append("Top hotspot: ").append(getDominantCategoryLabel(stats));
+		return hotspots.toString();
+	}
+
+	private String getDominantCategoryKey(SessionStats stats) {
+		int letterErrors = stats.getLetterErrors();
+		int numberErrors = stats.getNumberErrors();
+		int punctuationErrors = stats.getPunctuationErrors();
+		int spacingErrors = stats.getSpacingErrors();
+
+		if (spacingErrors >= letterErrors && spacingErrors >= numberErrors && spacingErrors >= punctuationErrors) {
+			return "spacing";
+		}
+		if (punctuationErrors >= letterErrors && punctuationErrors >= numberErrors) {
+			return "punctuation";
+		}
+		if (numberErrors >= letterErrors) {
+			return "numbers";
+		}
+		return "letters";
+	}
+
+	private String getDominantCategoryLabel(SessionStats stats) {
+		String category = getDominantCategoryKey(stats);
+		if ("spacing".equals(category)) {
+			return "Spacing";
+		}
+		if ("punctuation".equals(category)) {
+			return "Punctuation";
+		}
+		if ("numbers".equals(category)) {
+			return "Numbers";
+		}
+		return "Letters";
+	}
+
+	private String getBestCategoryLabel(SessionStats stats) {
+		int letterErrors = stats.getLetterErrors();
+		int numberErrors = stats.getNumberErrors();
+		int punctuationErrors = stats.getPunctuationErrors();
+		int spacingErrors = stats.getSpacingErrors();
+
+		if (letterErrors <= numberErrors && letterErrors <= punctuationErrors && letterErrors <= spacingErrors) {
+			return "Letters";
+		}
+		if (numberErrors <= letterErrors && numberErrors <= punctuationErrors && numberErrors <= spacingErrors) {
+			return "Numbers";
+		}
+		if (punctuationErrors <= letterErrors && punctuationErrors <= numberErrors && punctuationErrors <= spacingErrors) {
+			return "Punctuation";
+		}
+		return "Spacing";
 	}
 }
