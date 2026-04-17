@@ -5,7 +5,10 @@ import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -18,9 +21,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
-
 import model.Difficulty;
-import ui.UiButtons;
 
 /**
  * Active typing screen that captures keystrokes and streams live session stats.
@@ -43,6 +44,12 @@ public class TestPanel extends JPanel {
 	private String sessionId = "";
 	private String currentInput = "";
 	private boolean sessionFinished = false;
+
+	// Token-based accuracy model: accuracy drops once per token (word or punctuation).
+	// Tokens are derived from the target text and mistakes do not recover after backspace.
+	private int[] tokenIndexByChar = new int[0];
+	private int tokenCount = 0;
+	private final BitSet mistakenTokenIndexes = new BitSet();
 
 	public TestPanel(TypeGaugeFrame frame) {
 		this.frame = frame;
@@ -127,12 +134,7 @@ public class TestPanel extends JPanel {
 			@Override
 			public void keyTyped(KeyEvent e) {
 				char ch = e.getKeyChar();
-				// Handle backspace via keyTyped when it comes through as '\b'
-				if (ch == '\b') {
-					handleBackspace();
-					return;
-				}
-				// Ignore other control characters
+				// Ignore control characters (including backspace). Backspace is handled in keyPressed.
 				if (Character.isISOControl(ch)) {
 					return;
 				}
@@ -191,6 +193,7 @@ public class TestPanel extends JPanel {
 		this.sessionId = generateSessionId();
 		this.currentInput = "";
 		this.sessionFinished = false;
+		buildAccuracyTokens(this.targetText);
 		difficultyLabel.setText(difficulty != null ? difficulty.name() : "");
 		sessionIdLabel.setText("Session ID: " + sessionId);
 		timeLabel.setText("0s");
@@ -223,7 +226,11 @@ public class TestPanel extends JPanel {
 			return;
 		}
 
+		int charIndex = currentInput.length();
 		currentInput = currentInput + ch;
+		if (charIndex >= 0 && charIndex < targetText.length() && ch != targetText.charAt(charIndex)) {
+			registerTokenMistakeAt(charIndex);
+		}
 		applyInputUpdate();
 	}
 
@@ -257,7 +264,7 @@ public class TestPanel extends JPanel {
 		StyledDocument doc = targetPane.getStyledDocument();
 		try {
 			doc.remove(0, doc.getLength());
-		} catch (Exception ignored) {
+		} catch (javax.swing.text.BadLocationException ignored) {
 		}
 
 		if (targetText == null) {
@@ -276,9 +283,18 @@ public class TestPanel extends JPanel {
 			} else {
 				StyleConstants.setForeground(attrs, new Color(120, 120, 120));
 			}
+
+			// Keep spaces as spaces. If the expected char is a space but the user typed something else,
+			// display a visible red dot to show the mistake at that position.
+			String displayChar;
+			if (c == ' ' && i < currentInput.length() && currentInput.charAt(i) != ' ') {
+				displayChar = "·";
+			} else {
+				displayChar = String.valueOf(c);
+			}
 			try {
-				doc.insertString(doc.getLength(), String.valueOf(c), attrs);
-			} catch (Exception ignored) {
+				doc.insertString(doc.getLength(), displayChar, attrs);
+			} catch (javax.swing.text.BadLocationException ignored) {
 			}
 		}
 	}
@@ -303,6 +319,109 @@ public class TestPanel extends JPanel {
 		timeLabel.setText(seconds + "s");
 		wpmLabel.setText(String.valueOf(wpm));
 		accuracyLabel.setText(accuracy + "%");
+	}
+
+	public int getSessionAccuracyPercent() {
+		if (tokenCount <= 0) {
+			return 100;
+		}
+		int wrongTokens = mistakenTokenIndexes.cardinality();
+		double percent = ((tokenCount - wrongTokens) * 100.0) / tokenCount;
+		return (int) Math.max(0, Math.round(percent));
+	}
+
+	public int getSessionErrorCount() {
+		// Errors follow the same concept as the token-based accuracy model:
+		// count each token only once, and do not recover on backspace.
+		return mistakenTokenIndexes.cardinality();
+	}
+
+	private void registerTokenMistakeAt(int charIndex) {
+		if (tokenCount <= 0 || tokenIndexByChar.length == 0) {
+			return;
+		}
+		if (charIndex < 0 || charIndex >= tokenIndexByChar.length) {
+			return;
+		}
+
+		int tokenIndex = tokenIndexByChar[charIndex];
+		if (tokenIndex < 0) {
+			tokenIndex = findNearestTokenIndex(charIndex);
+		}
+		if (tokenIndex < 0) {
+			return;
+		}
+
+		if (!mistakenTokenIndexes.get(tokenIndex)) {
+			mistakenTokenIndexes.set(tokenIndex);
+			accuracyLabel.setText(getSessionAccuracyPercent() + "%");
+		}
+	}
+
+	private int findNearestTokenIndex(int charIndex) {
+		for (int left = charIndex - 1; left >= 0; left--) {
+			int tokenIndex = tokenIndexByChar[left];
+			if (tokenIndex >= 0) {
+				return tokenIndex;
+			}
+		}
+		for (int right = charIndex + 1; right < tokenIndexByChar.length; right++) {
+			int tokenIndex = tokenIndexByChar[right];
+			if (tokenIndex >= 0) {
+				return tokenIndex;
+			}
+		}
+		return -1;
+	}
+
+	private void buildAccuracyTokens(String text) {
+		mistakenTokenIndexes.clear();
+		tokenCount = 0;
+		if (text == null || text.isEmpty()) {
+			tokenIndexByChar = new int[0];
+			return;
+		}
+
+		tokenIndexByChar = new int[text.length()];
+		Arrays.fill(tokenIndexByChar, -1);
+
+		List<int[]> spans = computeTokenSpans(text);
+		tokenCount = spans.size();
+		for (int tokenIndex = 0; tokenIndex < spans.size(); tokenIndex++) {
+			int[] span = spans.get(tokenIndex);
+			for (int i = span[0]; i < span[1] && i < tokenIndexByChar.length; i++) {
+				tokenIndexByChar[i] = tokenIndex;
+			}
+		}
+	}
+
+	private static List<int[]> computeTokenSpans(String text) {
+		List<int[]> spans = new ArrayList<>();
+		int i = 0;
+		while (i < text.length()) {
+			char ch = text.charAt(i);
+			if (Character.isWhitespace(ch)) {
+				i++;
+				continue;
+			}
+
+			if (isWordChar(ch)) {
+				int start = i;
+				i++;
+				while (i < text.length() && isWordChar(text.charAt(i))) {
+					i++;
+				}
+				spans.add(new int[] { start, i });
+			} else {
+				spans.add(new int[] { i, i + 1 });
+				i++;
+			}
+		}
+		return spans;
+	}
+
+	private static boolean isWordChar(char ch) {
+		return Character.isLetterOrDigit(ch) || ch == '\'' || ch == '\u2019';
 	}
 
 	private String generateSessionId() {
