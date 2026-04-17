@@ -2,9 +2,8 @@ package ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.GridLayout;
 import java.awt.Dimension;
-
+import java.awt.GridLayout;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -12,11 +11,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-
 import model.SessionStats;
-import ui.GlassCardPanel;
-import ui.UiCards;
-import ui.UiButtons;
 
 /**
  * Results dashboard displayed after a typing session ends.
@@ -26,8 +21,6 @@ import ui.UiButtons;
  */
 public class ResultsPanel extends JPanel {
 
-	private final TypeGaugeFrame frame;
-
 	private final JLabel wpmValueLabel;
 	private final JLabel accuracyValueLabel;
 	private final JLabel errorsValueLabel;
@@ -36,9 +29,8 @@ public class ResultsPanel extends JPanel {
 	private final JLabel charsValueLabel;
 	private final JLabel sessionQualityValueLabel;
 
-	public ResultsPanel(TypeGaugeFrame frame) {
-		this.frame = frame;
-
+	public ResultsPanel(Runnable onReturnHome, Runnable onRetry, Runnable onOpenAccuracy, Runnable onOpenFeedback,
+		Runnable onOpenInstructions) {
 		setLayout(new BorderLayout());
 		setBorder(new EmptyBorder(200, 400, 40, 400));
 		setOpaque(false);
@@ -67,12 +59,27 @@ public class ResultsPanel extends JPanel {
 		headerButtons.setOpaque(false);
 
 		JButton homeButton = UiButtons.createPrimaryButton("Return to Main");
-		homeButton.addActionListener(e -> frame.showMainUi());
+		homeButton.addActionListener(e -> {
+			if (onReturnHome != null) {
+				onReturnHome.run();
+			}
+		});
 		JButton retryButton = UiButtons.createPrimaryButton("Retry Test");
-		retryButton.addActionListener(e -> frame.retry());
+		retryButton.addActionListener(e -> {
+			if (onRetry != null) {
+				onRetry.run();
+			}
+		});
+		JButton instructionsButton = UiButtons.createPrimaryButton("Instructions");
+		instructionsButton.addActionListener(e -> {
+			if (onOpenInstructions != null) {
+				onOpenInstructions.run();
+			}
+		});
 
 		headerButtons.add(homeButton);
 		headerButtons.add(retryButton);
+		headerButtons.add(instructionsButton);
 
 		header.add(headerButtons, BorderLayout.EAST);
 
@@ -127,7 +134,11 @@ public class ResultsPanel extends JPanel {
 		selfTitle.setFont(selfTitle.getFont().deriveFont(20f));
 		selfHeader.add(selfTitle, BorderLayout.WEST);
 		JButton detailedAnalysisButton = UiButtons.createPrimaryButton("Detailed Analysis ▶");
-		detailedAnalysisButton.addActionListener(e -> frame.showAccuracy());
+		detailedAnalysisButton.addActionListener(e -> {
+			if (onOpenAccuracy != null) {
+				onOpenAccuracy.run();
+			}
+		});
 		selfHeader.add(detailedAnalysisButton, BorderLayout.EAST);
 		selfAssessmentCard.add(selfHeader, BorderLayout.NORTH);
 
@@ -175,7 +186,11 @@ public class ResultsPanel extends JPanel {
 		feedbackTitle.setFont(feedbackTitle.getFont().deriveFont(20f));
 		feedbackHeader.add(feedbackTitle, BorderLayout.WEST);
 		JButton fullReportButton = UiButtons.createPrimaryButton("Full Report ▶");
-		fullReportButton.addActionListener(e -> frame.showFeedback());
+		fullReportButton.addActionListener(e -> {
+			if (onOpenFeedback != null) {
+				onOpenFeedback.run();
+			}
+		});
 		feedbackHeader.add(fullReportButton, BorderLayout.EAST);
 		feedbackCard.add(feedbackHeader, BorderLayout.NORTH);
 
