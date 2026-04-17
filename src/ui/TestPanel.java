@@ -50,6 +50,11 @@ public class TestPanel extends JPanel {
 	private int[] tokenIndexByChar = new int[0];
 	private int tokenCount = 0;
 	private final BitSet mistakenTokenIndexes = new BitSet();
+	private int letterMistakeCount = 0;
+	private int numberMistakeCount = 0;
+	private int punctuationMistakeCount = 0;
+	private int spacingMistakeCount = 0;
+	private final BitSet mistakenCharacterIndexes = new BitSet();
 
 	public TestPanel(TypeGaugeFrame frame) {
 		this.frame = frame;
@@ -193,6 +198,11 @@ public class TestPanel extends JPanel {
 		this.sessionId = generateSessionId();
 		this.currentInput = "";
 		this.sessionFinished = false;
+		this.letterMistakeCount = 0;
+		this.numberMistakeCount = 0;
+		this.punctuationMistakeCount = 0;
+		this.spacingMistakeCount = 0;
+			this.mistakenCharacterIndexes.clear();
 		buildAccuracyTokens(this.targetText);
 		difficultyLabel.setText(difficulty != null ? difficulty.name() : "");
 		sessionIdLabel.setText("Session ID: " + sessionId);
@@ -336,6 +346,34 @@ public class TestPanel extends JPanel {
 		return mistakenTokenIndexes.cardinality();
 	}
 
+	public int getLetterMistakeCount() {
+		return letterMistakeCount;
+	}
+
+	public int getNumberMistakeCount() {
+		return numberMistakeCount;
+	}
+
+	public int getPunctuationMistakeCount() {
+		return punctuationMistakeCount;
+	}
+
+	public int getSpacingMistakeCount() {
+		return spacingMistakeCount;
+	}
+
+	public BitSet getMistakenCharacterIndexes() {
+		return (BitSet) mistakenCharacterIndexes.clone();
+	}
+
+	private void markMistakenCharacterRange(int tokenIndex) {
+		for (int i = 0; i < tokenIndexByChar.length; i++) {
+			if (tokenIndexByChar[i] == tokenIndex) {
+				mistakenCharacterIndexes.set(i);
+			}
+		}
+	}
+
 	private void registerTokenMistakeAt(int charIndex) {
 		if (tokenCount <= 0 || tokenIndexByChar.length == 0) {
 			return;
@@ -354,7 +392,26 @@ public class TestPanel extends JPanel {
 
 		if (!mistakenTokenIndexes.get(tokenIndex)) {
 			mistakenTokenIndexes.set(tokenIndex);
+			markMistakenCharacterRange(tokenIndex);
+			trackMistakeCategory(charIndex);
 			accuracyLabel.setText(getSessionAccuracyPercent() + "%");
+		}
+	}
+
+	private void trackMistakeCategory(int charIndex) {
+		if (targetText == null || charIndex < 0 || charIndex >= targetText.length()) {
+			return;
+		}
+
+		char expected = targetText.charAt(charIndex);
+		if (Character.isWhitespace(expected)) {
+			spacingMistakeCount++;
+		} else if (Character.isLetter(expected)) {
+			letterMistakeCount++;
+		} else if (Character.isDigit(expected)) {
+			numberMistakeCount++;
+		} else {
+			punctuationMistakeCount++;
 		}
 	}
 
