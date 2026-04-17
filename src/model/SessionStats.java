@@ -1,5 +1,7 @@
 package model;
 
+import java.util.BitSet;
+
 public class SessionStats {
 
 	private int wpm;
@@ -7,9 +9,15 @@ public class SessionStats {
 	private int errors;
 	private int timeElapsedSeconds;
 	private int totalChars;
+	private int letterErrors;
+	private int numberErrors;
+	private int punctuationErrors;
+	private int spacingErrors;
+	private BitSet mistakenCharacterIndexes = new BitSet();
 	private Difficulty difficulty;
 	private String targetText;
 	private String userInput;
+	private String performanceGrade;
 
 	public int getWpm() {
 		return wpm;
@@ -51,6 +59,46 @@ public class SessionStats {
 		this.totalChars = totalChars;
 	}
 
+	public int getLetterErrors() {
+		return letterErrors;
+	}
+
+	public void setLetterErrors(int letterErrors) {
+		this.letterErrors = letterErrors;
+	}
+
+	public int getNumberErrors() {
+		return numberErrors;
+	}
+
+	public void setNumberErrors(int numberErrors) {
+		this.numberErrors = numberErrors;
+	}
+
+	public int getPunctuationErrors() {
+		return punctuationErrors;
+	}
+
+	public void setPunctuationErrors(int punctuationErrors) {
+		this.punctuationErrors = punctuationErrors;
+	}
+
+	public int getSpacingErrors() {
+		return spacingErrors;
+	}
+
+	public void setSpacingErrors(int spacingErrors) {
+		this.spacingErrors = spacingErrors;
+	}
+
+	public BitSet getMistakenCharacterIndexes() {
+		return (BitSet) mistakenCharacterIndexes.clone();
+	}
+
+	public void setMistakenCharacterIndexes(BitSet mistakenCharacterIndexes) {
+		this.mistakenCharacterIndexes = mistakenCharacterIndexes != null ? (BitSet) mistakenCharacterIndexes.clone() : new BitSet();
+	}
+
 	public Difficulty getDifficulty() {
 		return difficulty;
 	}
@@ -73,5 +121,13 @@ public class SessionStats {
 
 	public void setUserInput(String userInput) {
 		this.userInput = userInput;
+	}
+
+	public String getPerformanceGrade() {
+		return performanceGrade;
+	}
+
+	public void setPerformanceGrade(String performanceGrade) {
+		this.performanceGrade = performanceGrade;
 	}
 }
