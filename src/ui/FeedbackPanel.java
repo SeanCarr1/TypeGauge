@@ -2,25 +2,20 @@ package ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.GridLayout;
 import java.awt.Dimension;
 import java.awt.Font;
-
+import java.awt.GridLayout;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.border.EmptyBorder;
-
 import model.FeedbackResult;
 import model.SessionStats;
-
-import ui.GlassCardPanel;
-import ui.UiButtons;
 
 /**
  * Feedback screen that translates numeric stats into coaching-oriented guidance.
@@ -59,7 +54,7 @@ public class FeedbackPanel extends JPanel {
 		smallTitle.setFont(smallTitle.getFont().deriveFont(14f));
 		headerLeft.add(smallTitle);
 
-		JLabel titleLabel = new JLabel("Expert Guidance", SwingConstants.LEFT);
+		JLabel titleLabel = new JLabel("Feedback Generator", SwingConstants.LEFT);
 		titleLabel.setForeground(Color.WHITE);
 		titleLabel.setFont(titleLabel.getFont().deriveFont(36f));
 		headerLeft.add(titleLabel);
