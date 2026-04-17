@@ -4,3 +4,4 @@
 bin/model/
 bin/ui/*.class
 bin/main/
+.github/
