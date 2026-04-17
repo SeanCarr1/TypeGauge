@@ -28,9 +28,21 @@ public class ResultsPanel extends JPanel {
 	private final JLabel difficultyValueLabel;
 	private final JLabel charsValueLabel;
 	private final JLabel sessionQualityValueLabel;
+	private final JLabel previousWpmValueLabel;
+	private final JLabel previousAccuracyValueLabel;
+	private final JLabel bestWpmValueLabel;
+	private final JLabel bestAccuracyValueLabel;
+	private final JLabel performanceGradeValueLabel;
+	private final JLabel lettersErrorValueLabel;
+	private final JLabel numbersErrorValueLabel;
+	private final JLabel punctuationErrorValueLabel;
+	private final JLabel spacingErrorValueLabel;
 
-	public ResultsPanel(Runnable onReturnHome, Runnable onRetry, Runnable onOpenAccuracy, Runnable onOpenFeedback,
-		Runnable onOpenInstructions) {
+	private SessionStats previousStats;
+	private int bestWpm;
+	private int bestAccuracy;
+
+	public ResultsPanel(Runnable onReturnHome, Runnable onRetry, Runnable onOpenInstructions) {
 		setLayout(new BorderLayout());
 		setBorder(new EmptyBorder(200, 400, 40, 400));
 		setOpaque(false);
@@ -48,7 +60,7 @@ public class ResultsPanel extends JPanel {
 		diagnosticLabel.setFont(diagnosticLabel.getFont().deriveFont(14f));
 		headerLeft.add(diagnosticLabel);
 
-		JLabel titleLabel = new JLabel("Performance Summary", SwingConstants.LEFT);
+		JLabel titleLabel = new JLabel("Results Examiner", SwingConstants.LEFT);
 		titleLabel.setForeground(Color.WHITE);
 		titleLabel.setFont(titleLabel.getFont().deriveFont(36f));
 		headerLeft.add(titleLabel);
@@ -58,7 +70,7 @@ public class ResultsPanel extends JPanel {
 		JPanel headerButtons = new JPanel();
 		headerButtons.setOpaque(false);
 
-		JButton homeButton = UiButtons.createPrimaryButton("Return to Main");
+		JButton homeButton = UiButtons.createPrimaryButton("Return to Dashboard");
 		homeButton.addActionListener(e -> {
 			if (onReturnHome != null) {
 				onReturnHome.run();
@@ -133,13 +145,7 @@ public class ResultsPanel extends JPanel {
 		selfTitle.setForeground(Color.WHITE);
 		selfTitle.setFont(selfTitle.getFont().deriveFont(20f));
 		selfHeader.add(selfTitle, BorderLayout.WEST);
-		JButton detailedAnalysisButton = UiButtons.createPrimaryButton("Detailed Analysis ▶");
-		detailedAnalysisButton.addActionListener(e -> {
-			if (onOpenAccuracy != null) {
-				onOpenAccuracy.run();
-			}
-		});
-		selfHeader.add(detailedAnalysisButton, BorderLayout.EAST);
+		selfHeader.add(new JLabel(""), BorderLayout.EAST);
 		selfAssessmentCard.add(selfHeader, BorderLayout.NORTH);
 
 		JPanel selfStats = new JPanel(new GridLayout(3, 2, 8, 8));
@@ -164,12 +170,54 @@ public class ResultsPanel extends JPanel {
 		sessionQualityValueLabel = new JLabel("-");
 		sessionQualityValueLabel.setForeground(new Color(0, 220, 140));
 
+		JLabel previousWpmLabel = new JLabel("Previous WPM");
+		previousWpmLabel.setForeground(new Color(180, 180, 180));
+		previousWpmLabel.setFont(previousWpmLabel.getFont().deriveFont(16f));
+		previousWpmValueLabel = new JLabel("-");
+		previousWpmValueLabel.setForeground(Color.WHITE);
+
+		JLabel previousAccuracyLabel = new JLabel("Previous Accuracy");
+		previousAccuracyLabel.setForeground(new Color(180, 180, 180));
+		previousAccuracyLabel.setFont(previousAccuracyLabel.getFont().deriveFont(16f));
+		previousAccuracyValueLabel = new JLabel("-");
+		previousAccuracyValueLabel.setForeground(Color.WHITE);
+
+		JLabel bestWpmLabel = new JLabel("Best WPM");
+		bestWpmLabel.setForeground(new Color(180, 180, 180));
+		bestWpmLabel.setFont(bestWpmLabel.getFont().deriveFont(16f));
+		bestWpmValueLabel = new JLabel("0");
+		bestWpmValueLabel.setForeground(new Color(0, 220, 140));
+
+		JLabel bestAccuracyLabel = new JLabel("Best Accuracy");
+		bestAccuracyLabel.setForeground(new Color(180, 180, 180));
+		bestAccuracyLabel.setFont(bestAccuracyLabel.getFont().deriveFont(16f));
+		bestAccuracyValueLabel = new JLabel("0%");
+		bestAccuracyValueLabel.setForeground(new Color(0, 220, 140));
+
+		JLabel performanceGradeLabel = new JLabel("Performance Grade");
+		performanceGradeLabel.setForeground(new Color(180, 180, 180));
+		performanceGradeLabel.setFont(performanceGradeLabel.getFont().deriveFont(16f));
+		performanceGradeValueLabel = new JLabel("-");
+		performanceGradeValueLabel.setForeground(new Color(90, 150, 255));
+
+		selfStats.setLayout(new GridLayout(8, 2, 8, 8));
+
 		selfStats.add(difficultyLabel);
 		selfStats.add(difficultyValueLabel);
 		selfStats.add(charsLabel);
 		selfStats.add(charsValueLabel);
 		selfStats.add(sessionQualityLabel);
 		selfStats.add(sessionQualityValueLabel);
+		selfStats.add(previousWpmLabel);
+		selfStats.add(previousWpmValueLabel);
+		selfStats.add(previousAccuracyLabel);
+		selfStats.add(previousAccuracyValueLabel);
+		selfStats.add(bestWpmLabel);
+		selfStats.add(bestWpmValueLabel);
+		selfStats.add(bestAccuracyLabel);
+		selfStats.add(bestAccuracyValueLabel);
+		selfStats.add(performanceGradeLabel);
+		selfStats.add(performanceGradeValueLabel);
 
 		selfAssessmentCard.add(selfStats, BorderLayout.CENTER);
 
@@ -185,20 +233,14 @@ public class ResultsPanel extends JPanel {
 		feedbackTitle.setForeground(Color.WHITE);
 		feedbackTitle.setFont(feedbackTitle.getFont().deriveFont(20f));
 		feedbackHeader.add(feedbackTitle, BorderLayout.WEST);
-		JButton fullReportButton = UiButtons.createPrimaryButton("Full Report ▶");
-		fullReportButton.addActionListener(e -> {
-			if (onOpenFeedback != null) {
-				onOpenFeedback.run();
-			}
-		});
-		feedbackHeader.add(fullReportButton, BorderLayout.EAST);
+		feedbackHeader.add(new JLabel(""), BorderLayout.EAST);
 		feedbackCard.add(feedbackHeader, BorderLayout.NORTH);
 
-		JLabel feedbackSummary = new JLabel("Master Typist", SwingConstants.LEFT);
+		JLabel feedbackSummary = new JLabel("Error Category Summary", SwingConstants.LEFT);
 		feedbackSummary.setForeground(new Color(0, 220, 140));
 		feedbackSummary.setFont(feedbackSummary.getFont().deriveFont(24f));
 
-		JLabel feedbackBody = new JLabel("Exceptional speed and precision. You're in the top tier of typists.");
+		JLabel feedbackBody = new JLabel("Breakdown of unique token mistakes recorded in this session.");
 		feedbackBody.setForeground(new Color(200, 200, 200));
 		feedbackBody.setFont(feedbackBody.getFont().deriveFont(18f));
 		feedbackBody.setBorder(new EmptyBorder(8, 0, 0, 0));
@@ -206,7 +248,46 @@ public class ResultsPanel extends JPanel {
 		JPanel feedbackCenter = new JPanel(new BorderLayout());
 		feedbackCenter.setOpaque(false);
 		feedbackCenter.add(feedbackSummary, BorderLayout.NORTH);
-		feedbackCenter.add(feedbackBody, BorderLayout.CENTER);
+
+		JPanel categoryGrid = new JPanel(new GridLayout(4, 2, 8, 8));
+		categoryGrid.setOpaque(false);
+		categoryGrid.setBorder(new EmptyBorder(12, 0, 0, 0));
+
+		JLabel lettersLabel = new JLabel("Letters");
+		lettersLabel.setForeground(new Color(180, 180, 180));
+		lettersErrorValueLabel = new JLabel("0");
+		lettersErrorValueLabel.setForeground(Color.WHITE);
+
+		JLabel numbersLabel = new JLabel("Numbers");
+		numbersLabel.setForeground(new Color(180, 180, 180));
+		numbersErrorValueLabel = new JLabel("0");
+		numbersErrorValueLabel.setForeground(Color.WHITE);
+
+		JLabel punctuationLabel = new JLabel("Punctuation");
+		punctuationLabel.setForeground(new Color(180, 180, 180));
+		punctuationErrorValueLabel = new JLabel("0");
+		punctuationErrorValueLabel.setForeground(Color.WHITE);
+
+		JLabel spacingLabel = new JLabel("Spacing");
+		spacingLabel.setForeground(new Color(180, 180, 180));
+		spacingErrorValueLabel = new JLabel("0");
+		spacingErrorValueLabel.setForeground(Color.WHITE);
+
+		categoryGrid.add(lettersLabel);
+		categoryGrid.add(lettersErrorValueLabel);
+		categoryGrid.add(numbersLabel);
+		categoryGrid.add(numbersErrorValueLabel);
+		categoryGrid.add(punctuationLabel);
+		categoryGrid.add(punctuationErrorValueLabel);
+		categoryGrid.add(spacingLabel);
+		categoryGrid.add(spacingErrorValueLabel);
+
+		JPanel feedbackBodyPanel = new JPanel(new BorderLayout());
+		feedbackBodyPanel.setOpaque(false);
+		feedbackBodyPanel.add(feedbackBody, BorderLayout.NORTH);
+		feedbackBodyPanel.add(categoryGrid, BorderLayout.CENTER);
+
+		feedbackCenter.add(feedbackBodyPanel, BorderLayout.CENTER);
 
 		feedbackCard.add(feedbackCenter, BorderLayout.CENTER);
 
@@ -231,6 +312,24 @@ public class ResultsPanel extends JPanel {
 		timeValueLabel.setText(stats.getTimeElapsedSeconds() + "s");
 		difficultyValueLabel.setText(stats.getDifficulty() != null ? stats.getDifficulty().name() : "");
 		charsValueLabel.setText(String.valueOf(stats.getTotalChars()));
+		lettersErrorValueLabel.setText(String.valueOf(stats.getLetterErrors()));
+		numbersErrorValueLabel.setText(String.valueOf(stats.getNumberErrors()));
+		punctuationErrorValueLabel.setText(String.valueOf(stats.getPunctuationErrors()));
+		spacingErrorValueLabel.setText(String.valueOf(stats.getSpacingErrors()));
+
+		if (previousStats != null) {
+			previousWpmValueLabel.setText(String.valueOf(previousStats.getWpm()));
+			previousAccuracyValueLabel.setText(previousStats.getAccuracy() + "%");
+		} else {
+			previousWpmValueLabel.setText("-");
+			previousAccuracyValueLabel.setText("-");
+		}
+
+		bestWpm = Math.max(bestWpm, stats.getWpm());
+		bestAccuracy = Math.max(bestAccuracy, stats.getAccuracy());
+		bestWpmValueLabel.setText(String.valueOf(bestWpm));
+		bestAccuracyValueLabel.setText(bestAccuracy + "%");
+		performanceGradeValueLabel.setText(stats.getPerformanceGrade() != null ? stats.getPerformanceGrade() : "-");
 
 		// Simple quality heuristic similar to web: high if accuracy >= 95 and wpm >= 40
 		String quality = "Medium";
@@ -240,5 +339,6 @@ public class ResultsPanel extends JPanel {
 			quality = "Developing";
 		}
 		sessionQualityValueLabel.setText(quality);
+		previousStats = stats;
 	}
 }
