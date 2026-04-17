@@ -2,21 +2,18 @@ package ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.FlowLayout;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.RenderingHints;
-import java.awt.Dimension;
-
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
@@ -171,20 +168,16 @@ public class FeatureHubPanel extends JPanel {
 
 	private void openStatsScreen(String route) {
 		if (frame.getCurrentStats() == null) {
-			JOptionPane.showMessageDialog(
-				this,
-				"Complete at least one test session first to open this feature.",
-				"Session Required",
-				JOptionPane.INFORMATION_MESSAGE);
+			frame.showSessionRequiredDialog();
 			return;
 		}
 
-		if ("results".equals(route)) {
-			frame.showResults();
-		} else if ("accuracy".equals(route)) {
-			frame.showAccuracy();
-		} else if ("feedback".equals(route)) {
-			frame.showFeedback();
+		switch (route) {
+		case "results" -> frame.showResults();
+		case "accuracy" -> frame.showAccuracy();
+		case "feedback" -> frame.showFeedback();
+		default -> {
+		}
 		}
 	}
 }
