@@ -89,8 +89,7 @@ public class TypeGaugeFrame extends JFrame {
 		homePanel = new HomePanel(this);
 		featureHubPanel = new FeatureHubPanel(this);
 		testPanel = new TestPanel(this);
-		resultsPanel = new ResultsPanel(this::showMainUi, this::retry, this::showAccuracy, this::showFeedback,
-			this::showResultsInstructions);
+		resultsPanel = new ResultsPanel(this::showFeatureHub, this::retryTest, this::showResultsInstructions);
 		accuracyPanel = new AccuracyPanel(this);
 		feedbackPanel = new FeedbackPanel(this);
 		aboutPanel = new AboutPanel(this);
@@ -140,6 +139,10 @@ public class TypeGaugeFrame extends JFrame {
 	}
 
 	public void startSessionFromSelectedDifficulty() {
+		startSession(currentDifficulty);
+	}
+
+	public void retryTest() {
 		startSession(currentDifficulty);
 	}
 
@@ -275,6 +278,7 @@ public class TypeGaugeFrame extends JFrame {
 		int errors = testPanel.getSessionErrorCount();
 		int wpm = StatsUtil.calculateWpm(totalChars, elapsedSeconds);
 		int accuracy = testPanel.getSessionAccuracyPercent();
+		String performanceGrade = computePerformanceGrade(accuracy, wpm, errors);
 
 		SessionStats stats = new SessionStats();
 		stats.setDifficulty(currentDifficulty);
@@ -282,8 +286,14 @@ public class TypeGaugeFrame extends JFrame {
 		stats.setUserInput(finalInput);
 		stats.setTotalChars(totalChars);
 		stats.setErrors(errors);
+		stats.setLetterErrors(testPanel.getLetterMistakeCount());
+		stats.setNumberErrors(testPanel.getNumberMistakeCount());
+		stats.setPunctuationErrors(testPanel.getPunctuationMistakeCount());
+		stats.setSpacingErrors(testPanel.getSpacingMistakeCount());
+		stats.setMistakenCharacterIndexes(testPanel.getMistakenCharacterIndexes());
 		stats.setWpm(wpm);
 		stats.setAccuracy(accuracy);
+		stats.setPerformanceGrade(performanceGrade);
 		stats.setTimeElapsedSeconds(elapsedSeconds);
 
 		this.currentStats = stats;
@@ -294,6 +304,19 @@ public class TypeGaugeFrame extends JFrame {
 		feedbackPanel.showFeedback(stats, feedback);
 		sidebarPanel.updateForStatsAvailable(true);
 		showSessionCompletedDialog(stats);
+	}
+
+	private String computePerformanceGrade(int accuracy, int wpm, int errors) {
+		if (accuracy >= 95 && wpm >= 40 && errors <= 3) {
+			return "A";
+		}
+		if (accuracy >= 90 && wpm >= 30 && errors <= 6) {
+			return "B";
+		}
+		if (accuracy >= 80 && wpm >= 20) {
+			return "C";
+		}
+		return "D";
 	}
 
 	private void showSessionCompletedDialog(SessionStats stats) {
