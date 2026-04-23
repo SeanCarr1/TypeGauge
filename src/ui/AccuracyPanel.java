@@ -248,14 +248,25 @@ public class AccuracyPanel extends JPanel {
 	   }
 
 	private String buildHotspotsText(SessionStats stats) {
-		StringBuilder hotspots = new StringBuilder();
-		hotspots.append("Letters: ").append(stats.getLetterErrors()).append("\n");
-		hotspots.append("Numbers: ").append(stats.getNumberErrors()).append("\n");
-		hotspots.append("Punctuation: ").append(stats.getPunctuationErrors()).append("\n");
-		hotspots.append("Spacing: ").append(stats.getSpacingErrors()).append("\n\n");
-		hotspots.append("Top hotspot: ").append(getDominantCategoryLabel(stats));
-		return hotspots.toString();
-	}
+		   String targetText = stats.getTargetText();
+		   int letterCount = 0, numberCount = 0, punctuationCount = 0, spacingCount = 0;
+		   if (targetText != null) {
+			   for (int i = 0; i < targetText.length(); i++) {
+				   char c = targetText.charAt(i);
+				   if (Character.isLetter(c)) letterCount++;
+				   else if (Character.isDigit(c)) numberCount++;
+				   else if (c == ' ') spacingCount++;
+				   else if (!Character.isWhitespace(c)) punctuationCount++;
+			   }
+		   }
+		   StringBuilder hotspots = new StringBuilder();
+		   hotspots.append("Letters: ").append(letterCount > 0 ? stats.getLetterErrors() : "N/A").append("\n");
+		   hotspots.append("Numbers: ").append(numberCount > 0 ? stats.getNumberErrors() : "N/A").append("\n");
+		   hotspots.append("Punctuation: ").append(punctuationCount > 0 ? stats.getPunctuationErrors() : "N/A").append("\n");
+		   hotspots.append("Spacing: ").append(spacingCount > 0 ? stats.getSpacingErrors() : "N/A").append("\n\n");
+		   hotspots.append("Top hotspot: ").append(getDominantCategoryLabel(stats));
+		   return hotspots.toString();
+	   }
 
 	private String getDominantCategoryKey(SessionStats stats) {
 		int letterErrors = stats.getLetterErrors();
