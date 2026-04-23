@@ -58,8 +58,8 @@ public class AccuracyPanel extends JPanel {
 
 		header.add(headerLeft, BorderLayout.WEST);
 
-		JButton backButton = UiButtons.createPrimaryButton("Back to Results");
-		backButton.addActionListener(e -> frame.showResults());
+		JButton backButton = UiButtons.createPrimaryButton("Return to Dashboard");
+		backButton.addActionListener(e -> frame.showFeatureHub());
 		JButton returnToMainButton = UiButtons.createPrimaryButton("Return to Main");
 		returnToMainButton.addActionListener(e -> frame.showMainUi());
 		JPanel headerButtons = new JPanel();
@@ -184,7 +184,7 @@ public class AccuracyPanel extends JPanel {
 		}
 		// Render the target text itself so the user can compare it against their input.
 		renderTargetText(stats.getTargetText(), stats.getUserInput(), stats.getMistakenCharacterIndexes());
-		strengthsTextArea.setText(buildStrengthsText(stats));
+		strengthsTextArea.setText(buildStrengthsText(stats, stats.getTargetText()));
 		hotspotsTextArea.setText(buildHotspotsText(stats));
 	}
 
@@ -229,23 +229,23 @@ public class AccuracyPanel extends JPanel {
 		}
 	}
 
-	private String buildStrengthsText(SessionStats stats) {
-		StringBuilder strengths = new StringBuilder();
-		strengths.append("Steady control on: ");
-		if (stats.getAccuracy() >= 90) {
-			strengths.append("overall accuracy, ");
-		}
-		if (stats.getWpm() >= 30) {
-			strengths.append("typing pace, ");
-		}
-		if (stats.getErrors() <= 3) {
-			strengths.append("error control, ");
-		}
-		strengths.append("and consistent focus.\n");
-		strengths.append("Best handled category: ").append(getBestCategoryLabel(stats)).append("\n");
-		strengths.append("Performance grade: ").append(stats.getPerformanceGrade() != null ? stats.getPerformanceGrade() : "-");
-		return strengths.toString();
-	}
+	private String buildStrengthsText(SessionStats stats, String targetText) {
+		   StringBuilder strengths = new StringBuilder();
+		   strengths.append("Steady control on: ");
+		   if (stats.getAccuracy() >= 90) {
+			   strengths.append("overall accuracy, ");
+		   }
+		   if (stats.getWpm() >= 30) {
+			   strengths.append("typing pace, ");
+		   }
+		   if (stats.getErrors() <= 3) {
+			   strengths.append("error control, ");
+		   }
+		   strengths.append("and consistent focus.\n");
+		   strengths.append("Best handled category: ").append(getBestCategoryLabel(stats, targetText)).append("\n");
+		   strengths.append("Performance grade: ").append(stats.getPerformanceGrade() != null ? stats.getPerformanceGrade() : "-");
+		   return strengths.toString();
+	   }
 
 	private String buildHotspotsText(SessionStats stats) {
 		StringBuilder hotspots = new StringBuilder();
@@ -289,21 +289,43 @@ public class AccuracyPanel extends JPanel {
 		return "Letters";
 	}
 
-	private String getBestCategoryLabel(SessionStats stats) {
-		int letterErrors = stats.getLetterErrors();
-		int numberErrors = stats.getNumberErrors();
-		int punctuationErrors = stats.getPunctuationErrors();
-		int spacingErrors = stats.getSpacingErrors();
-
-		if (letterErrors <= numberErrors && letterErrors <= punctuationErrors && letterErrors <= spacingErrors) {
-			return "Letters";
-		}
-		if (numberErrors <= letterErrors && numberErrors <= punctuationErrors && numberErrors <= spacingErrors) {
-			return "Numbers";
-		}
-		if (punctuationErrors <= letterErrors && punctuationErrors <= numberErrors && punctuationErrors <= spacingErrors) {
-			return "Punctuation";
-		}
-		return "Spacing";
-	}
+	private String getBestCategoryLabel(SessionStats stats, String targetText) {
+		   // Count presence of each category in the target text
+		   int letterCount = 0, numberCount = 0, punctuationCount = 0, spacingCount = 0;
+		   if (targetText != null) {
+			   for (int i = 0; i < targetText.length(); i++) {
+				   char c = targetText.charAt(i);
+				   if (Character.isLetter(c)) letterCount++;
+				   else if (Character.isDigit(c)) numberCount++;
+				   else if (c == ' ') spacingCount++;
+				   else if (!Character.isWhitespace(c)) punctuationCount++;
+			   }
+		   }
+		   // Build arrays for present categories and their error counts
+		   java.util.List<String> present = new java.util.ArrayList<>();
+		   java.util.List<Integer> errors = new java.util.ArrayList<>();
+		   if (letterCount > 0) {
+			   present.add("Letters");
+			   errors.add(stats.getLetterErrors());
+		   }
+		   if (numberCount > 0) {
+			   present.add("Numbers");
+			   errors.add(stats.getNumberErrors());
+		   }
+		   if (punctuationCount > 0) {
+			   present.add("Punctuation");
+			   errors.add(stats.getPunctuationErrors());
+		   }
+		   if (spacingCount > 0) {
+			   present.add("Spacing");
+			   errors.add(stats.getSpacingErrors());
+		   }
+		   if (present.isEmpty()) return "-";
+		   // Find the present category with the lowest error count
+		   int minIdx = 0;
+		   for (int i = 1; i < errors.size(); i++) {
+			   if (errors.get(i) < errors.get(minIdx)) minIdx = i;
+		   }
+		   return present.get(minIdx);
+	   }
 }
