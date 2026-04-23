@@ -2,22 +2,18 @@ package ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.GridLayout;
 import java.awt.Dimension;
 import java.awt.Font;
-
+import java.awt.GridLayout;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.border.EmptyBorder;
-
-import ui.GlassCardPanel;
-import ui.UiButtons;
 
 /**
  * About screen describing TypeGauge goals and core principles.
