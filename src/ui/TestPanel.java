@@ -238,8 +238,17 @@ public class TestPanel extends JPanel {
 
 		int charIndex = currentInput.length();
 		currentInput = currentInput + ch;
-		if (charIndex >= 0 && charIndex < targetText.length() && ch != targetText.charAt(charIndex)) {
-			registerTokenMistakeAt(charIndex);
+
+		// Persist space mistakes at character level
+		if (charIndex >= 0 && charIndex < targetText.length()) {
+			char expected = targetText.charAt(charIndex);
+			if (expected == ' ' && ch != ' ') {
+				// Mark this character as a mistaken space
+				mistakenCharacterIndexes.set(charIndex);
+				spacingMistakeCount++;
+			} else if (ch != expected) {
+				registerTokenMistakeAt(charIndex);
+			}
 		}
 		applyInputUpdate();
 	}
