@@ -111,9 +111,9 @@ public class ResultsPanel extends JPanel {
 
 		JPanel speedCard = UiCards.createGlassStatCard("SPEED", "WPM", null,
 			wpmValueLabel = new JLabel("0", SwingConstants.CENTER));
-		JPanel accuracyCard = UiCards.createGlassStatCard("ACCURACY", "Precision", null,
+		JPanel accuracyCard = UiCards.createGlassStatCard("ACCURACY",null, null,
 			accuracyValueLabel = new JLabel("0%", SwingConstants.CENTER));
-		JPanel errorsCard = UiCards.createGlassStatCard("ERRORS", "Keystrokes", null,
+		JPanel errorsCard = UiCards.createGlassStatCard("ERRORS", null, null,
 			errorsValueLabel = new JLabel("0", SwingConstants.CENTER));
 		JPanel timeCard = UiCards.createGlassStatCard("TIME", "Duration", null,
 			timeValueLabel = new JLabel("0s", SwingConstants.CENTER));
@@ -234,7 +234,7 @@ public class ResultsPanel extends JPanel {
 		feedbackTitle.setFont(feedbackTitle.getFont().deriveFont(20f));
 		feedbackHeader.add(feedbackTitle, BorderLayout.WEST);
 		feedbackHeader.add(new JLabel(""), BorderLayout.EAST);
-		feedbackCard.add(feedbackHeader, BorderLayout.NORTH);
+		// feedbackCard.add(feedbackHeader, BorderLayout.NORTH);
 
 		JLabel feedbackSummary = new JLabel("Error Category Summary", SwingConstants.LEFT);
 		feedbackSummary.setForeground(new Color(0, 220, 140));
@@ -242,7 +242,7 @@ public class ResultsPanel extends JPanel {
 
 		JLabel feedbackBody = new JLabel("Breakdown of unique token mistakes recorded in this session.");
 		feedbackBody.setForeground(new Color(200, 200, 200));
-		feedbackBody.setFont(feedbackBody.getFont().deriveFont(18f));
+		feedbackBody.setFont(feedbackBody.getFont().deriveFont(14f));
 		feedbackBody.setBorder(new EmptyBorder(8, 0, 0, 0));
 
 		JPanel feedbackCenter = new JPanel(new BorderLayout());
@@ -284,7 +284,7 @@ public class ResultsPanel extends JPanel {
 
 		JPanel feedbackBodyPanel = new JPanel(new BorderLayout());
 		feedbackBodyPanel.setOpaque(false);
-		feedbackBodyPanel.add(feedbackBody, BorderLayout.NORTH);
+		// feedbackBodyPanel.add(feedbackBody, BorderLayout.NORTH);
 		feedbackBodyPanel.add(categoryGrid, BorderLayout.CENTER);
 
 		feedbackCenter.add(feedbackBodyPanel, BorderLayout.CENTER);
