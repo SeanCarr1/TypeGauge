@@ -240,12 +240,15 @@ public class TestPanel extends JPanel {
 		currentInput = currentInput + ch;
 
 		// Persist space mistakes at character level
+		// Persist mistakes at character level and token level
 		if (charIndex >= 0 && charIndex < targetText.length()) {
 			char expected = targetText.charAt(charIndex);
 			if (expected == ' ' && ch != ' ') {
 				// Mark this character as a mistaken space
 				mistakenCharacterIndexes.set(charIndex);
 				spacingMistakeCount++;
+				// Also register as a token mistake so accuracy is affected
+				registerTokenMistakeAt(charIndex);
 			} else if (ch != expected) {
 				registerTokenMistakeAt(charIndex);
 			}
