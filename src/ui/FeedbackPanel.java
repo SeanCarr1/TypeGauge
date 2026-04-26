@@ -65,8 +65,11 @@ public class FeedbackPanel extends JPanel {
 		backButton.addActionListener(e -> frame.showFeatureHub());
 		JButton returnToMainButton = UiButtons.createPrimaryButton("Return to Main");
 		returnToMainButton.addActionListener(e -> frame.showMainUi());
+		JButton instructionsButton = UiButtons.createPrimaryButton("Instructions");
+		instructionsButton.addActionListener(e -> frame.showFeedbackInstructions());
 		JPanel headerButtons = new JPanel();
 		headerButtons.setOpaque(false);
+		headerButtons.add(instructionsButton);
 		headerButtons.add(backButton);
 		headerButtons.add(returnToMainButton);
 		header.add(headerButtons, BorderLayout.EAST);
