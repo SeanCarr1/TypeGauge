@@ -417,6 +417,30 @@ public class TypeGaugeFrame extends JFrame {
 
 		showInstructionsDialog("Session Required", body);
 	}
+	public void showAccuracyInstructions() {
+		String body = "<html><div style='width:560px;'>"
+			+ "<ol style='margin-top:8px;'>"
+			+ "<li>This screen shows a detailed breakdown of your typing accuracy for the last session.</li>"
+			+ "<li>Review the color-coded text: <b>green</b> for correct, <b>red</b> for mistakes, <b>·</b> for missed spaces.</li>"
+			+ "<li>See strengths and error hotspots by category.</li>"
+			+ "<li>Use <b>Return</b> buttons to go back to Results or Main.</li>"
+			+ "<li>Press <b>Close</b> to exit this popup.</li>"
+			+ "</ol>" 
+			+ "</div></html>";
+		showInstructionsDialog("How to use Accuracy Analyzer", body);
+	}
+
+	public void showFeedbackInstructions() {
+		String body = "<html><div style='width:560px;'>"
+			+ "<ol style='margin-top:8px;'>"
+			+ "<li>This screen gives you personalized feedback and goals based on your last typing session.</li>"
+			+ "<li>Read the summary and suggested improvements for speed and accuracy.</li>"
+			+ "<li>Use <b>Practice Again</b> to retry, or <b>Return</b> to go back.</li>"
+			+ "<li>Press <b>Close</b> to exit this popup.</li>"
+			+ "</ol>" 
+			+ "</div></html>";
+		showInstructionsDialog("How to use Feedback Generator", body);
+	}
 
 	private void showInstructionsDialog(String titleText, String htmlBody) {
 		JDialog dialog = new JDialog(this, "Instructions", true);
