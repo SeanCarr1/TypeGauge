@@ -15,6 +15,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
+import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -32,6 +33,11 @@ public class AccuracyPanel extends JPanel {
 	private final JTextPane analysisArea;
 	private final JTextArea strengthsTextArea;
 	private final JTextArea hotspotsTextArea;
+
+	private final JButton analyzeButton;
+	private SessionStats currentPendingStats;
+	private int animationTick = 0;
+	private final Timer analysisTimer;
 
 	public AccuracyPanel(TypeGaugeFrame frame) {
 		setLayout(new BorderLayout());
@@ -64,9 +70,15 @@ public class AccuracyPanel extends JPanel {
 		returnToMainButton.addActionListener(e -> frame.showMainUi());
 		JButton instructionsButton = UiButtons.createPrimaryButton("Instructions");
 		instructionsButton.addActionListener(e -> frame.showAccuracyInstructions());
+
+		analyzeButton = UiButtons.createPrimaryButton("Analyze");
+		analyzeButton.setVisible(false);
+		analyzeButton.addActionListener(e -> startAnalysisAnimation());
+
 		JPanel headerButtons = new JPanel();
 		headerButtons.setOpaque(false);
 		headerButtons.add(instructionsButton);
+		headerButtons.add(analyzeButton);
 		headerButtons.add(backButton);
 		headerButtons.add(returnToMainButton);
 		header.add(headerButtons, BorderLayout.EAST);
@@ -176,15 +188,54 @@ public class AccuracyPanel extends JPanel {
 		add(center, BorderLayout.CENTER);
 		strengthsTextArea.setText("Waiting for a completed session.");
 		hotspotsTextArea.setText("Waiting for a completed session.");
+
+		analysisTimer = new Timer(200, e -> handleAnalysisTick());
+	}
+
+	private void startAnalysisAnimation() {
+		analyzeButton.setEnabled(false);
+		animationTick = 0;
+		analysisTimer.start();
+	}
+
+	private void handleAnalysisTick() {
+		animationTick++;
+		String[] dots = { "", ".", "..", "..." };
+		analyzeButton.setText("Analyzing" + dots[animationTick % 4]);
+
+		if (animationTick >= 10) {
+			analysisTimer.stop();
+			analyzeButton.setVisible(false);
+			if (currentPendingStats != null) {
+				applyStatsToUi(currentPendingStats);
+			}
+		}
 	}
 
 	public void showStats(SessionStats stats) {
 		if (stats == null) {
-			renderTargetText("", "", new BitSet());
-			strengthsTextArea.setText("No session data available yet.");
-			hotspotsTextArea.setText("No session data available yet.");
 			return;
 		}
+		this.currentPendingStats = stats;
+
+		// Reset UI to "Processing" state
+		renderTargetText("", "", new BitSet());
+		strengthsTextArea.setText("Analysis in progress...");
+		hotspotsTextArea.setText("Analysis in progress...");
+
+		analyzeButton.setText("Analyze");
+		analyzeButton.setEnabled(true);
+		analyzeButton.setVisible(true);
+	}
+
+	private void applyStatsToUi(SessionStats stats) {
+		if (stats == null) {
+			renderTargetText("", "", new BitSet());
+			strengthsTextArea.setText("No session data available.");
+			hotspotsTextArea.setText("No session data available.");
+			return;
+		}
+
 		// Render the target text itself so the user can compare it against their input.
 		renderTargetText(stats.getTargetText(), stats.getUserInput(), stats.getMistakenCharacterIndexes());
 		strengthsTextArea.setText(buildStrengthsText(stats, stats.getTargetText()));
@@ -235,7 +286,9 @@ public class AccuracyPanel extends JPanel {
 	private String buildStrengthsText(SessionStats stats, String targetText) {
 		   StringBuilder strengths = new StringBuilder();
 		   strengths.append("Steady control on: ");
-		   if (stats.getAccuracy() >= 90) {
+		   if (stats.getAccuracy() == 100) {
+			   strengths.append("flawless accuracy, ");
+		   } else if (stats.getAccuracy() >= 90) {
 			   strengths.append("overall accuracy, ");
 		   }
 		   if (stats.getWpm() >= 30) {
@@ -270,13 +323,16 @@ public class AccuracyPanel extends JPanel {
 		   hotspots.append("Top hotspot: ").append(getDominantCategoryLabel(stats));
 		   return hotspots.toString();
 	   }
-
+	
 	private String getDominantCategoryKey(SessionStats stats) {
 		int letterErrors = stats.getLetterErrors();
 		int numberErrors = stats.getNumberErrors();
 		int punctuationErrors = stats.getPunctuationErrors();
 		int spacingErrors = stats.getSpacingErrors();
 
+		if (stats.getErrors() == 0) {
+			return null;
+		}
 		if (spacingErrors >= letterErrors && spacingErrors >= numberErrors && spacingErrors >= punctuationErrors) {
 			return "spacing";
 		}
@@ -291,6 +347,9 @@ public class AccuracyPanel extends JPanel {
 
 	private String getDominantCategoryLabel(SessionStats stats) {
 		String category = getDominantCategoryKey(stats);
+		if (category == null) {
+			return "None";
+		}
 		if ("spacing".equals(category)) {
 			return "Spacing";
 		}
@@ -304,6 +363,7 @@ public class AccuracyPanel extends JPanel {
 	}
 
 	private String getBestCategoryLabel(SessionStats stats, String targetText) {
+		   if (stats.getAccuracy() == 100) return "All (100% Match)";
 		   // Count presence of each category in the target text
 		   int letterCount = 0, numberCount = 0, punctuationCount = 0, spacingCount = 0;
 		   if (targetText != null) {
