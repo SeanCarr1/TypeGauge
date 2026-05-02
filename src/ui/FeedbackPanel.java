@@ -5,308 +5,535 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.util.ResourceBundle;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
+import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
+import model.FeedbackContext;
 import model.FeedbackResult;
 import model.SessionStats;
 
-/**
- * Feedback screen that translates numeric stats into coaching-oriented guidance.
- *
- * <p>This panel receives both {@code SessionStats} and {@code FeedbackResult}
- * from the frame coordinator and renders actionable goals for the next run.
- */
 public class FeedbackPanel extends JPanel {
 
-	private final TypeGaugeFrame frame;
-	private final JLabel analysisIntroLabel;
-	private final JLabel feedbackMessageLabel;
-	private final JLabel nextSpeedValueLabel;
-	private final JLabel nextAccuracyValueLabel;
-	private final JLabel nextSpeedDeltaLabel;
-	private final JLabel nextAccuracyDeltaLabel;
-	private final JTextArea summaryTextArea;
+    private static final ResourceBundle STRINGS = ResourceBundle.getBundle(
+        "ui.resources.FeedbackPanelStrings"
+    );
 
-	public FeedbackPanel(TypeGaugeFrame frame) {
-		this.frame = frame;
+    private final TypeGaugeFrame frame;
+    private final JLabel analysisIntroLabel;
+    private final JLabel feedbackMessageLabel;
+    private final JLabel nextSpeedValueLabel;
+    private final JLabel nextAccuracyValueLabel;
+    private final JLabel nextSpeedDeltaLabel;
+    private final JLabel nextAccuracyDeltaLabel;
 
-		setLayout(new BorderLayout());
-		setBorder(new EmptyBorder(20, 400, 40, 400));
-		setOpaque(false);
+    private JPanel suggestionsWrapper;
 
-		// Header: Self-Assessment & Feedback / Expert Guidance + Back button
-		JPanel header = new JPanel(new BorderLayout());
-		header.setOpaque(false);
-		header.setBorder(new EmptyBorder(200, 0, 20, 0));
+    private final JButton analyzeButton;
+    private SessionStats currentPendingStats;
+    private FeedbackResult currentPendingFeedback;
+    private int animationTick = 0;
+    private final Timer analysisTimer;
 
-		JPanel headerLeft = new JPanel(new GridLayout(2, 1));
-		headerLeft.setOpaque(false);
+    public FeedbackPanel(TypeGaugeFrame frame) {
+        this.frame = frame;
 
-		JLabel smallTitle = new JLabel("SELF-ASSESSMENT & FEEDBACK", SwingConstants.LEFT);
-		smallTitle.setForeground(new Color(90, 150, 255));
-		smallTitle.setFont(smallTitle.getFont().deriveFont(14f));
-		headerLeft.add(smallTitle);
+        setLayout(new BorderLayout());
+        setBorder(new EmptyBorder(20, 400, 40, 400));
+        setOpaque(false);
 
-		JLabel titleLabel = new JLabel("Feedback Generator", SwingConstants.LEFT);
-		titleLabel.setForeground(Color.WHITE);
-		titleLabel.setFont(titleLabel.getFont().deriveFont(36f));
-		headerLeft.add(titleLabel);
+        // Header: Self-Assessment & Feedback / Expert Guidance + Back button
+        JPanel header = new JPanel(new BorderLayout());
+        header.setOpaque(false);
+        header.setBorder(new EmptyBorder(200, 0, 20, 0));
 
-		header.add(headerLeft, BorderLayout.WEST);
+        JPanel headerLeft = new JPanel(new GridLayout(2, 1));
+        headerLeft.setOpaque(false);
 
-		JButton backButton = UiButtons.createPrimaryButton("Return to Dashboad");
-		backButton.addActionListener(e -> frame.showFeatureHub());
-		JButton returnToMainButton = UiButtons.createPrimaryButton("Return to Main");
-		returnToMainButton.addActionListener(e -> frame.showMainUi());
-		JButton instructionsButton = UiButtons.createPrimaryButton("Instructions");
-		instructionsButton.addActionListener(e -> frame.showFeedbackInstructions());
-		JPanel headerButtons = new JPanel();
-		headerButtons.setOpaque(false);
-		headerButtons.add(instructionsButton);
-		headerButtons.add(backButton);
-		headerButtons.add(returnToMainButton);
-		header.add(headerButtons, BorderLayout.EAST);
+        JLabel smallTitle = new JLabel(
+            STRINGS.getString("feedback.header.smallTitle"),
+            SwingConstants.LEFT
+        );
+        smallTitle.setForeground(new Color(90, 150, 255));
+        smallTitle.setFont(smallTitle.getFont().deriveFont(14f));
+        headerLeft.add(smallTitle);
 
-		add(header, BorderLayout.NORTH);
+        JLabel titleLabel = new JLabel(
+            STRINGS.getString("feedback.header.title"),
+            SwingConstants.LEFT
+        );
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setFont(titleLabel.getFont().deriveFont(36f));
+        headerLeft.add(titleLabel);
 
-		// Center vertical container so cards don't stretch to the bottom
-		JPanel content = new JPanel();
-		content.setOpaque(false);
-		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        header.add(headerLeft, BorderLayout.WEST);
 
-		// Row: left analysis card + right goal/summary column
-		JPanel center = new JPanel(new BorderLayout());
-		center.setOpaque(false);
-		center.setMaximumSize(new Dimension(Integer.MAX_VALUE, 420));
+        JButton backButton = UiButtons.createPrimaryButton(
+            "Return to Dashboad"
+        );
+        backButton.addActionListener(e -> frame.showFeatureHub());
+        JButton returnToMainButton = UiButtons.createPrimaryButton(
+            "Return to Main"
+        );
+        returnToMainButton.addActionListener(e -> frame.showMainUi());
+        JButton instructionsButton = UiButtons.createPrimaryButton(
+            "Instructions"
+        );
+        instructionsButton.addActionListener(e ->
+            frame.showFeedbackInstructions()
+        );
 
-		// Left: Personalized Analysis card
-		JPanel analysisCard = new GlassCardPanel(24, new Color(25, 25, 25, 160));
-		analysisCard.setLayout(new BorderLayout());
-		analysisCard.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(new Color(255, 255, 255, 40), 1, true),
-			new EmptyBorder(16, 16, 16, 16)));
+        analyzeButton = UiButtons.createPrimaryButton("Generate Feedback");
+        analyzeButton.setVisible(false);
+        analyzeButton.addActionListener(e -> startAnalysisAnimation());
 
-		JLabel analysisTitle = new JLabel("Personalized Analysis", SwingConstants.LEFT);
-		analysisTitle.setForeground(Color.WHITE);
-		analysisTitle.setFont(analysisTitle.getFont().deriveFont(24f));
-		analysisCard.add(analysisTitle, BorderLayout.NORTH);
+        JPanel headerButtons = new JPanel();
+        headerButtons.setOpaque(false);
+        headerButtons.add(instructionsButton);
+        headerButtons.add(analyzeButton);
+        headerButtons.add(backButton);
+        headerButtons.add(returnToMainButton);
+        header.add(headerButtons, BorderLayout.EAST);
 
-		JPanel analysisCenter = new JPanel(new BorderLayout());
-		analysisCenter.setOpaque(false);
-		analysisCenter.setBorder(new EmptyBorder(12, 0, 0, 0));
+        add(header, BorderLayout.NORTH);
 
-		analysisIntroLabel = new JLabel("", SwingConstants.LEFT);
-		analysisIntroLabel.setForeground(new Color(200, 200, 200));
-		analysisIntroLabel.setFont(analysisIntroLabel.getFont().deriveFont(16f));
-		analysisIntroLabel.setBorder(new EmptyBorder(0, 0, 12, 0));
-		analysisCenter.add(analysisIntroLabel, BorderLayout.NORTH);
+        // Center vertical container so cards don't stretch to the bottom
+        JPanel content = new JPanel();
+        content.setOpaque(false);
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 
-		feedbackMessageLabel = new JLabel("", SwingConstants.LEFT);
-		feedbackMessageLabel.setForeground(new Color(220, 220, 220));
-		feedbackMessageLabel.setFont(feedbackMessageLabel.getFont().deriveFont(18f));
-		feedbackMessageLabel.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(new Color(60, 60, 80)),
-			new EmptyBorder(12, 12, 12, 12)));
-		analysisCenter.add(feedbackMessageLabel, BorderLayout.CENTER);
+        // Row: left analysis card + right goal/summary column
+        JPanel center = new JPanel(new BorderLayout());
+        center.setOpaque(false);
+        center.setMaximumSize(new Dimension(Integer.MAX_VALUE, 420));
 
-		JPanel suggestionsPanel = new JPanel(new GridLayout(3, 1, 0, 12));
-		suggestionsPanel.setOpaque(false);
-		suggestionsPanel.setBorder(new EmptyBorder(12, 0, 0, 0));
+        // Left: Personalized Analysis card
+        JPanel analysisCard = new GlassCardPanel(
+            24,
+            new Color(25, 25, 25, 160)
+        );
+        analysisCard.setLayout(new BorderLayout());
+        analysisCard.setBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(
+                    new Color(255, 255, 255, 40),
+                    1,
+                    true
+                ),
+                new EmptyBorder(16, 16, 16, 16)
+            )
+        );
 
-		JPanel speedCard = createSuggestionCard(
-			new Color(0, 140, 100, 200),
-			"⚡",
-			"Speed Strategy",
-			"Try to look ahead at the next word while finishing the current one to maintain momentum.");
-		JPanel errorCard = createSuggestionCard(
-			new Color(180, 60, 60, 200),
-			"●",
-			"Error Reduction",
-			"Slow down by 5–10% on complex words to ensure 100% accuracy before speeding up again.");
-		JPanel progressCard = createSuggestionCard(
-			new Color(40, 90, 180, 200),
-			"⟳",
-			"Progress Encouragement",
-			"Your speed is consistent. Focus on longer passages to build endurance.");
+        JLabel analysisTitle = new JLabel(
+            "Personalized Analysis",
+            SwingConstants.LEFT
+        );
+        analysisTitle.setForeground(Color.WHITE);
+        analysisTitle.setFont(analysisTitle.getFont().deriveFont(24f));
+        analysisCard.add(analysisTitle, BorderLayout.NORTH);
 
-		suggestionsPanel.add(speedCard);
-		suggestionsPanel.add(errorCard);
-		suggestionsPanel.add(progressCard);
+        JPanel analysisCenter = new JPanel(new BorderLayout());
+        analysisCenter.setOpaque(false);
+        analysisCenter.setBorder(new EmptyBorder(12, 0, 0, 0));
 
-		JLabel suggestionsTitle = new JLabel("Constructive Suggestions", SwingConstants.LEFT);
-		suggestionsTitle.setForeground(Color.WHITE);
-		suggestionsTitle.setFont(suggestionsTitle.getFont().deriveFont(16f));
+        analysisIntroLabel = new JLabel("", SwingConstants.LEFT);
+        analysisIntroLabel.setForeground(new Color(200, 200, 200));
+        analysisIntroLabel.setFont(
+            analysisIntroLabel.getFont().deriveFont(16f)
+        );
+        analysisIntroLabel.setBorder(new EmptyBorder(0, 0, 12, 0));
+        analysisCenter.add(analysisIntroLabel, BorderLayout.NORTH);
 
-		JPanel suggestionsWrapper = new JPanel(new BorderLayout());
-		suggestionsWrapper.setOpaque(false);
-		suggestionsWrapper.add(suggestionsTitle, BorderLayout.NORTH);
-		suggestionsWrapper.add(suggestionsPanel, BorderLayout.CENTER);
+        feedbackMessageLabel = new JLabel("", SwingConstants.LEFT);
+        feedbackMessageLabel.setForeground(new Color(220, 220, 220));
+        feedbackMessageLabel.setFont(
+            feedbackMessageLabel.getFont().deriveFont(18f)
+        );
+        feedbackMessageLabel.setBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(60, 60, 80)),
+                new EmptyBorder(12, 12, 12, 12)
+            )
+        );
+        analysisCenter.add(feedbackMessageLabel, BorderLayout.CENTER);
 
-		analysisCenter.add(suggestionsWrapper, BorderLayout.SOUTH);
+        // Suggestions wrapper is initialized here, but content is set in showFeedback
+        suggestionsWrapper = new JPanel(new BorderLayout());
+        suggestionsWrapper.setOpaque(false);
+        JLabel suggestionsTitle = new JLabel(
+            STRINGS.getString("feedback.suggestions.title"),
+            SwingConstants.LEFT
+        );
+        suggestionsTitle.setForeground(Color.WHITE);
+        suggestionsTitle.setFont(suggestionsTitle.getFont().deriveFont(16f));
+        suggestionsWrapper.add(suggestionsTitle, BorderLayout.NORTH);
+        analysisCenter.add(suggestionsWrapper, BorderLayout.SOUTH);
 
-		analysisCard.add(analysisCenter, BorderLayout.CENTER);
+        analysisCard.add(analysisCenter, BorderLayout.CENTER);
 
-		center.add(analysisCard, BorderLayout.CENTER);
+        center.add(analysisCard, BorderLayout.CENTER);
 
-		// Right column: Goal Setting and Summary of Strengths
-		JPanel rightColumn = new JPanel(new BorderLayout());
-		rightColumn.setOpaque(false);
-		rightColumn.setBorder(new EmptyBorder(0, 16, 0, 0));
+        // Right column: Goal Setting and Summary of Strengths
+        JPanel rightColumn = new JPanel(new BorderLayout());
+        rightColumn.setOpaque(false);
+        rightColumn.setBorder(new EmptyBorder(0, 16, 0, 0));
 
-		// Goal Setting card
-		JPanel goalCard = new GlassCardPanel(24, new Color(25, 25, 25, 160));
-		goalCard.setLayout(new BorderLayout());
-		goalCard.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(new Color(255, 255, 255, 40), 1, true),
-			new EmptyBorder(16, 16, 16, 16)));
+        // Goal Setting card
+        JPanel goalCard = new GlassCardPanel(24, new Color(25, 25, 25, 160));
+        goalCard.setLayout(new BorderLayout());
+        goalCard.setBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(
+                    new Color(255, 255, 255, 40),
+                    1,
+                    true
+                ),
+                new EmptyBorder(16, 16, 16, 16)
+            )
+        );
 
-		JLabel goalTitle = new JLabel("Goal Setting", SwingConstants.LEFT);
-		goalTitle.setForeground(Color.WHITE);
-		goalTitle.setFont(goalTitle.getFont().deriveFont(20f));
-		goalCard.add(goalTitle, BorderLayout.NORTH);
+        JLabel goalTitle = new JLabel("Goal Setting", SwingConstants.LEFT);
+        goalTitle.setForeground(Color.WHITE);
+        goalTitle.setFont(goalTitle.getFont().deriveFont(20f));
+        goalCard.add(goalTitle, BorderLayout.NORTH);
 
-		JPanel goalBody = new JPanel(new GridLayout(2, 2, 8, 8));
-		goalBody.setOpaque(false);
-		goalBody.setBorder(new EmptyBorder(12, 0, 12, 0));
+        JPanel goalBody = new JPanel(new GridLayout(2, 2, 8, 8));
+        goalBody.setOpaque(false);
+        goalBody.setBorder(new EmptyBorder(12, 0, 12, 0));
 
-		JLabel nextSpeedLabel = new JLabel("Next Target Speed");
-		nextSpeedLabel.setForeground(new Color(180, 180, 180));
-		nextSpeedLabel.setFont(nextSpeedLabel.getFont().deriveFont(12f));
-		nextSpeedValueLabel = new JLabel("0", SwingConstants.RIGHT);
-		nextSpeedValueLabel.setForeground(Color.WHITE);
-		nextSpeedValueLabel.setFont(nextSpeedValueLabel.getFont().deriveFont(30f));
-		nextSpeedDeltaLabel = new JLabel("+0 WPM", SwingConstants.LEFT);
-		nextSpeedDeltaLabel.setForeground(new Color(0, 220, 140));
-		nextSpeedDeltaLabel.setFont(nextSpeedDeltaLabel.getFont().deriveFont(14f));
-		JPanel speedValuePanel = new JPanel(new BorderLayout());
-		speedValuePanel.setOpaque(false);
-		speedValuePanel.add(nextSpeedValueLabel, BorderLayout.WEST);
-		speedValuePanel.add(nextSpeedDeltaLabel, BorderLayout.EAST);
+        JLabel nextSpeedLabel = new JLabel("Next Target Speed");
+        nextSpeedLabel.setForeground(new Color(180, 180, 180));
+        nextSpeedLabel.setFont(nextSpeedLabel.getFont().deriveFont(12f));
+        nextSpeedValueLabel = new JLabel("0", SwingConstants.RIGHT);
+        nextSpeedValueLabel.setForeground(Color.WHITE);
+        nextSpeedValueLabel.setFont(
+            nextSpeedValueLabel.getFont().deriveFont(30f)
+        );
+        nextSpeedDeltaLabel = new JLabel("+0 WPM", SwingConstants.LEFT);
+        nextSpeedDeltaLabel.setForeground(new Color(0, 220, 140));
+        nextSpeedDeltaLabel.setFont(
+            nextSpeedDeltaLabel.getFont().deriveFont(14f)
+        );
+        JPanel speedValuePanel = new JPanel(new BorderLayout());
+        speedValuePanel.setOpaque(false);
+        speedValuePanel.add(nextSpeedValueLabel, BorderLayout.WEST);
+        speedValuePanel.add(nextSpeedDeltaLabel, BorderLayout.EAST);
 
-		JLabel nextAccuracyLabel = new JLabel("Accuracy Goal");
-		nextAccuracyLabel.setForeground(new Color(180, 180, 180));
-		nextAccuracyLabel.setFont(nextAccuracyLabel.getFont().deriveFont(12f));
-		nextAccuracyValueLabel = new JLabel("0%", SwingConstants.RIGHT);
-		nextAccuracyValueLabel.setForeground(Color.WHITE);
-		nextAccuracyValueLabel.setFont(nextAccuracyValueLabel.getFont().deriveFont(30f));
-		nextAccuracyDeltaLabel = new JLabel("+0%", SwingConstants.LEFT);
-		nextAccuracyDeltaLabel.setForeground(new Color(0, 220, 140));
-		nextAccuracyDeltaLabel.setFont(nextAccuracyDeltaLabel.getFont().deriveFont(14f));
-		JPanel accuracyValuePanel = new JPanel(new BorderLayout());
-		accuracyValuePanel.setOpaque(false);
-		accuracyValuePanel.add(nextAccuracyValueLabel, BorderLayout.WEST);
-		accuracyValuePanel.add(nextAccuracyDeltaLabel, BorderLayout.EAST);
+        JLabel nextAccuracyLabel = new JLabel("Accuracy Goal");
+        nextAccuracyLabel.setForeground(new Color(180, 180, 180));
+        nextAccuracyLabel.setFont(nextAccuracyLabel.getFont().deriveFont(12f));
+        nextAccuracyValueLabel = new JLabel("0%", SwingConstants.RIGHT);
+        nextAccuracyValueLabel.setForeground(Color.WHITE);
+        nextAccuracyValueLabel.setFont(
+            nextAccuracyValueLabel.getFont().deriveFont(30f)
+        );
+        nextAccuracyDeltaLabel = new JLabel("+0%", SwingConstants.LEFT);
+        nextAccuracyDeltaLabel.setForeground(new Color(0, 220, 140));
+        nextAccuracyDeltaLabel.setFont(
+            nextAccuracyDeltaLabel.getFont().deriveFont(14f)
+        );
+        JPanel accuracyValuePanel = new JPanel(new BorderLayout());
+        accuracyValuePanel.setOpaque(false);
+        accuracyValuePanel.add(nextAccuracyValueLabel, BorderLayout.WEST);
+        accuracyValuePanel.add(nextAccuracyDeltaLabel, BorderLayout.EAST);
 
-		goalBody.add(nextSpeedLabel);
-		goalBody.add(speedValuePanel);
-		goalBody.add(nextAccuracyLabel);
-		goalBody.add(accuracyValuePanel);
+        goalBody.add(nextSpeedLabel);
+        goalBody.add(speedValuePanel);
+        goalBody.add(nextAccuracyLabel);
+        goalBody.add(accuracyValuePanel);
 
-		goalCard.add(goalBody, BorderLayout.CENTER);
+        goalCard.add(goalBody, BorderLayout.CENTER);
 
-		JButton practiceButton = UiButtons.createPrimaryButton("Start Practice");
-		practiceButton.addActionListener(e -> frame.retry());
-		goalCard.add(practiceButton, BorderLayout.SOUTH);
+        JButton practiceButton = UiButtons.createPrimaryButton(
+            "Start Practice"
+        );
+        practiceButton.addActionListener(e -> frame.retry());
+        goalCard.add(practiceButton, BorderLayout.SOUTH);
 
-		rightColumn.add(goalCard, BorderLayout.NORTH);
+        rightColumn.add(goalCard, BorderLayout.NORTH);
 
-		// Summary of Strengths card
-		JPanel summaryCard = new GlassCardPanel(24, new Color(25, 25, 25, 160));
-		summaryCard.setLayout(new BorderLayout());
-		summaryCard.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(new Color(255, 255, 255, 40), 1, true),
-			new EmptyBorder(16, 16, 16, 16)));
+        center.add(rightColumn, BorderLayout.EAST);
 
-		JLabel summaryTitle = new JLabel("Summary of Strengths", SwingConstants.LEFT);
-		summaryTitle.setForeground(Color.WHITE);
-		summaryTitle.setFont(summaryTitle.getFont().deriveFont(14f));
-		summaryCard.add(summaryTitle, BorderLayout.NORTH);
+        // Stack the row and push extra space below it
+        content.add(Box.createVerticalStrut(8));
+        center.setAlignmentX(LEFT_ALIGNMENT);
+        content.add(center);
+        content.add(Box.createVerticalGlue());
 
-		summaryTextArea = new JTextArea();
-		summaryTextArea.setEditable(false);
-		summaryTextArea.setOpaque(false);
-		summaryTextArea.setLineWrap(true);
-		summaryTextArea.setWrapStyleWord(true);
-		summaryTextArea.setForeground(new Color(200, 200, 200));
-		summaryTextArea.setFont(summaryTextArea.getFont().deriveFont(12f));
+        add(content, BorderLayout.CENTER);
 
-		summaryCard.add(summaryTextArea, BorderLayout.CENTER);
+        analysisTimer = new Timer(200, e -> handleAnalysisTick());
+    }
 
-		rightColumn.add(summaryCard, BorderLayout.CENTER);
+    private void startAnalysisAnimation() {
+        analyzeButton.setEnabled(false);
+        animationTick = 0;
+        analysisTimer.start();
+    }
 
-		center.add(rightColumn, BorderLayout.EAST);
+    private void handleAnalysisTick() {
+        animationTick++;
+        String[] dots = { "", ".", "..", "..." };
+        analyzeButton.setText("Analyzing" + dots[animationTick % 4]);
 
-		// Stack the row and push extra space below it
-		content.add(Box.createVerticalStrut(8));
-		center.setAlignmentX(LEFT_ALIGNMENT);
-		content.add(center);
-		content.add(Box.createVerticalGlue());
+        if (animationTick >= 10) {
+            analysisTimer.stop();
+            analyzeButton.setVisible(false);
+            if (currentPendingStats != null && currentPendingFeedback != null) {
+                applyFeedbackToUi(currentPendingStats, currentPendingFeedback);
+            }
+        }
+    }
 
-		add(content, BorderLayout.CENTER);
-	}
+    private JPanel createSuggestionCard(
+        Color accentColor,
+        String iconText,
+        String title,
+        String body
+    ) {
+        // Small reusable card used in the constructive suggestions section.
+        JPanel card = new GlassCardPanel(18, new Color(20, 20, 20, 200));
+        card.setLayout(new BorderLayout());
+        card.setBorder(new EmptyBorder(12, 16, 12, 16));
 
-	private JPanel createSuggestionCard(Color accentColor, String iconText, String title, String body) {
-		// Small reusable card used in the constructive suggestions section.
-		JPanel card = new GlassCardPanel(18, new Color(20, 20, 20, 200));
-		card.setLayout(new BorderLayout());
-		card.setBorder(new EmptyBorder(12, 16, 12, 16));
+        JPanel iconWrapper = new JPanel(new BorderLayout());
+        iconWrapper.setOpaque(false);
+        JLabel iconLabel = new JLabel(iconText, SwingConstants.CENTER);
+        iconLabel.setForeground(accentColor);
+        iconLabel.setFont(iconLabel.getFont().deriveFont(18f));
+        iconWrapper.setBorder(new EmptyBorder(0, 0, 0, 12));
+        iconWrapper.add(iconLabel, BorderLayout.CENTER);
 
-		JPanel iconWrapper = new JPanel(new BorderLayout());
-		iconWrapper.setOpaque(false);
-		JLabel iconLabel = new JLabel(iconText, SwingConstants.CENTER);
-		iconLabel.setForeground(accentColor);
-		iconLabel.setFont(iconLabel.getFont().deriveFont(18f));
-		iconWrapper.setBorder(new EmptyBorder(0, 0, 0, 12));
-		iconWrapper.add(iconLabel, BorderLayout.CENTER);
+        JPanel textPanel = new JPanel(new BorderLayout());
+        textPanel.setOpaque(false);
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setFont(textPanel.getFont().deriveFont(Font.BOLD, 14f));
+        JLabel bodyLabel = new JLabel("<html>" + body + "</html>");
+        bodyLabel.setForeground(new Color(200, 200, 200));
+        bodyLabel.setFont(bodyLabel.getFont().deriveFont(12f));
+        textPanel.add(titleLabel, BorderLayout.NORTH);
+        textPanel.add(bodyLabel, BorderLayout.CENTER);
 
-		JPanel textPanel = new JPanel(new BorderLayout());
-		textPanel.setOpaque(false);
-		JLabel titleLabel = new JLabel(title);
-		titleLabel.setForeground(Color.WHITE);
-		titleLabel.setFont(textPanel.getFont().deriveFont(Font.BOLD, 14f));
-		JLabel bodyLabel = new JLabel("<html>" + body + "</html>");
-		bodyLabel.setForeground(new Color(200, 200, 200));
-		bodyLabel.setFont(bodyLabel.getFont().deriveFont(12f));
-		textPanel.add(titleLabel, BorderLayout.NORTH);
-		textPanel.add(bodyLabel, BorderLayout.CENTER);
+        card.add(iconWrapper, BorderLayout.WEST);
+        card.add(textPanel, BorderLayout.CENTER);
+        return card;
+    }
 
-		card.add(iconWrapper, BorderLayout.WEST);
-		card.add(textPanel, BorderLayout.CENTER);
-		return card;
-	}
+    // Suggestion card configuration structure
+    private static class SuggestionCardConfig {
 
-	public void showFeedback(SessionStats stats, FeedbackResult feedback) {
-		// Defensive guard: clear fields if data is unavailable.
-		if (stats == null || feedback == null) {
-			analysisIntroLabel.setText("");
-			feedbackMessageLabel.setText("");
-			nextSpeedValueLabel.setText("0");
-			nextAccuracyValueLabel.setText("0%");
-			summaryTextArea.setText("");
-			return;
-		}
+        final Color color;
+        final String icon;
+        final String title;
+        final String message;
+        final java.util.function.Predicate<FeedbackContext> rule;
 
-		String difficultyText = stats.getDifficulty() != null ? stats.getDifficulty().name() : "your";
-		analysisIntroLabel.setText("Based on your session at " + difficultyText
-			+ " difficulty, our Rule-Based Analysis Engine has generated the following assessment:");
+        SuggestionCardConfig(
+            Color color,
+            String icon,
+            String title,
+            String message,
+            java.util.function.Predicate<FeedbackContext> rule
+        ) {
+            this.color = color;
+            this.icon = icon;
+            this.title = title;
+            this.message = message;
+            this.rule = rule;
+        }
+    }
 
-		feedbackMessageLabel.setText("\"" + feedback.getMessage() + "\"");
+    // List of suggestion card configs
+    private static final java.util.List<SuggestionCardConfig> SUGGESTION_CARDS =
+        java.util.Arrays.asList(
+            new SuggestionCardConfig(
+                new Color(0, 140, 100, 200),
+                "⚡",
+                "Speed Strategy",
+                "Try to look ahead at the next word while finishing the current one to maintain momentum.",
+                ctx ->
+                    ctx.speedTier == FeedbackContext.SpeedTier.VERY_SLOW ||
+                    ctx.speedTier == FeedbackContext.SpeedTier.SLOW ||
+                    ctx.speedTier == FeedbackContext.SpeedTier.MEDIUM
+            ),
+            new SuggestionCardConfig(
+                new Color(180, 60, 60, 200),
+                "●",
+                "Error Reduction",
+                "Slow down by 5–10% on complex words to ensure 100% accuracy before speeding up again.",
+                ctx ->
+                    ctx.accuracyTier == FeedbackContext.AccuracyTier.LOW ||
+                    ctx.accuracyTier == FeedbackContext.AccuracyTier.OK ||
+                    ctx.controlTier == FeedbackContext.ControlTier.NEEDS_WORK
+            ),
+            new SuggestionCardConfig(
+                new Color(40, 90, 180, 200),
+                "⟳",
+                "Progress Encouragement",
+                "Your speed is consistent. Focus on longer passages to build endurance.",
+                ctx ->
+                    (ctx.speedTier == FeedbackContext.SpeedTier.FAST ||
+                        ctx.speedTier == FeedbackContext.SpeedTier.VERY_FAST) &&
+                    (ctx.accuracyTier == FeedbackContext.AccuracyTier.GOOD ||
+                        ctx.accuracyTier ==
+                        FeedbackContext.AccuracyTier.GREAT ||
+                        ctx.accuracyTier == FeedbackContext.AccuracyTier.ELITE)
+            ),
+            new SuggestionCardConfig(
+                new Color(255, 215, 0, 200),
+                "★",
+                "Precision Focus",
+                "Your accuracy is exceptional. Now, try to push your speed limits in short, controlled bursts.",
+                ctx ->
+                    (ctx.speedTier == FeedbackContext.SpeedTier.VERY_SLOW ||
+                        ctx.speedTier == FeedbackContext.SpeedTier.SLOW) &&
+                    ctx.accuracyTier == FeedbackContext.AccuracyTier.ELITE
+            ),
+            new SuggestionCardConfig(
+                new Color(150, 100, 255, 200),
+                "≋",
+                "Flow Optimization",
+                "Your rhythm is stable. Minimize pauses between words to achieve a more fluid typing experience.",
+                ctx ->
+                    ctx.controlTier == FeedbackContext.ControlTier.STRONG &&
+                    ctx.speedTier != FeedbackContext.SpeedTier.VERY_FAST
+            ),
+            new SuggestionCardConfig(
+                new Color(0, 180, 180, 200),
+                "⚖",
+                "Stability Training",
+                "You have a solid mid-range pace. Focus on refining your technique to eliminate the final few errors.",
+                ctx ->
+                    ctx.speedTier == FeedbackContext.SpeedTier.MEDIUM &&
+                    (ctx.accuracyTier == FeedbackContext.AccuracyTier.GOOD ||
+                        ctx.accuracyTier == FeedbackContext.AccuracyTier.GREAT)
+            )
+            // Dominant error category handled separately below
+        );
 
-		int nextWpm = stats.getWpm() + 5;
-		int nextAccuracy = Math.min(100, stats.getAccuracy() + 2);
-		nextSpeedValueLabel.setText(String.valueOf(nextWpm));
-		nextAccuracyValueLabel.setText(nextAccuracy + "%");
-		nextSpeedDeltaLabel.setText("+" + (nextWpm - stats.getWpm()) + " WPM");
-		nextAccuracyDeltaLabel.setText("+" + (nextAccuracy - stats.getAccuracy()) + "%");
+    private JPanel buildSuggestionsPanel(SessionStats stats) {
+        FeedbackContext context = FeedbackContext.from(stats);
+        JPanel suggestionsPanel = new JPanel(new GridLayout(0, 1, 0, 12));
+        suggestionsPanel.setOpaque(false);
+        suggestionsPanel.setBorder(new EmptyBorder(12, 0, 0, 0));
 
-		summaryTextArea.setText("Your ability to handle " + difficultyText
-			+ " level text shows a strong foundation in touch typing. Your primary strength is maintaining a steady pace even when encountering unfamiliar words.");
-	}
+        // Add cards from config
+        for (SuggestionCardConfig config : SUGGESTION_CARDS) {
+            if (config.rule.test(context)) {
+                suggestionsPanel.add(
+                    createSuggestionCard(
+                        config.color,
+                        config.icon,
+                        config.title,
+                        config.message
+                    )
+                );
+            }
+        }
+
+        // Dominant Error Category (still dynamic)
+        if (context.dominantCategoryKey != null) {
+            String focus = null;
+            switch (context.dominantCategoryKey) {
+                case "punctuation":
+                    focus =
+                        "Pay extra attention to punctuation—most of your errors are here.";
+                    break;
+                case "spacing":
+                    focus =
+                        "Watch your spacing—this is where most of your errors occur.";
+                    break;
+                case "numbers":
+                    focus =
+                        "Numbers seem tricky—practice typing them accurately.";
+                    break;
+            }
+            if (focus != null) {
+                suggestionsPanel.add(
+                    createSuggestionCard(
+                        new Color(200, 160, 40, 200),
+                        "✎",
+                        "Focus Area",
+                        focus
+                    )
+                );
+            }
+        }
+        return suggestionsPanel;
+    }
+
+    public void showFeedback(SessionStats stats, FeedbackResult feedback) {
+        if (stats == null || feedback == null) {
+            return;
+        }
+        this.currentPendingStats = stats;
+        this.currentPendingFeedback = feedback;
+
+        // Reset UI to placeholders for the "0 results first" look
+        analysisIntroLabel.setText("Analysis ready...");
+        feedbackMessageLabel.setText("Click 'Analyze' to generate guidance.");
+        suggestionsWrapper.removeAll();
+        suggestionsWrapper.revalidate();
+        suggestionsWrapper.repaint();
+        nextSpeedValueLabel.setText("0");
+        nextAccuracyValueLabel.setText("0%");
+        nextSpeedDeltaLabel.setText("+0 WPM");
+        nextAccuracyDeltaLabel.setText("+0%");
+
+        analyzeButton.setText("Analyze");
+        analyzeButton.setEnabled(true);
+        analyzeButton.setVisible(true);
+    }
+
+    private void applyFeedbackToUi(SessionStats stats, FeedbackResult feedback) {
+        // Update suggestions panel dynamically
+        JPanel suggestionsPanel = buildSuggestionsPanel(stats);
+        suggestionsWrapper.removeAll();
+        JLabel suggestionsTitle = new JLabel(
+            STRINGS.getString("feedback.suggestions.title"),
+            SwingConstants.LEFT
+        );
+        suggestionsTitle.setForeground(Color.WHITE);
+        suggestionsTitle.setFont(suggestionsTitle.getFont().deriveFont(16f));
+        suggestionsWrapper.add(suggestionsTitle, BorderLayout.NORTH);
+        suggestionsWrapper.add(suggestionsPanel, BorderLayout.CENTER);
+        suggestionsWrapper.revalidate();
+        suggestionsWrapper.repaint();
+
+        String difficultyText =
+            stats.getDifficulty() != null
+                ? stats.getDifficulty().name()
+                : "your";
+        analysisIntroLabel.setText(
+            "<html>Based on your session at " +
+                difficultyText +
+                " difficulty, our Rule-Based Analysis Engine has generated the following assessment:</html>"
+        );
+
+        feedbackMessageLabel.setText(
+            "<html>\"" + feedback.getMainMessage() + "\"</html>"
+        );
+
+        // Configurable increments for next goals
+        final int SPEED_INCREMENT = 5;
+        final int ACCURACY_INCREMENT = 2;
+        int nextWpm = stats.getWpm() + SPEED_INCREMENT;
+        int nextAccuracy = Math.min(
+            100,
+            stats.getAccuracy() + ACCURACY_INCREMENT
+        );
+        nextSpeedValueLabel.setText(String.valueOf(nextWpm));
+        nextAccuracyValueLabel.setText(nextAccuracy + "%");
+        nextSpeedDeltaLabel.setText("+" + (nextWpm - stats.getWpm()) + " WPM");
+        nextAccuracyDeltaLabel.setText(
+            "+" + (nextAccuracy - stats.getAccuracy()) + "%"
+        );
+    }
 }
