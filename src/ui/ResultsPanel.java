@@ -9,6 +9,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import model.SessionStats;
@@ -38,9 +39,13 @@ public class ResultsPanel extends JPanel {
 	private final JLabel punctuationErrorValueLabel;
 	private final JLabel spacingErrorValueLabel;
 
+	private final JButton analyzeButton;
 	private SessionStats previousStats;
+	private SessionStats currentPendingStats;
 	private int bestWpm;
 	private int bestAccuracy;
+	private int animationTick = 0;
+	private final Timer analysisTimer;
 
 	public ResultsPanel(Runnable onReturnHome, Runnable onRetry, Runnable onOpenInstructions) {
 		setLayout(new BorderLayout());
@@ -89,6 +94,11 @@ public class ResultsPanel extends JPanel {
 			}
 		});
 
+		analyzeButton = UiButtons.createPrimaryButton("Analyze");
+		analyzeButton.setVisible(false);
+		analyzeButton.addActionListener(e -> startAnalysisAnimation());
+
+		headerButtons.add(analyzeButton);
 		headerButtons.add(homeButton);
 		headerButtons.add(retryButton);
 		headerButtons.add(instructionsButton);
@@ -299,13 +309,50 @@ public class ResultsPanel extends JPanel {
 		center.add(javax.swing.Box.createVerticalGlue());
 
 		add(center, BorderLayout.CENTER);
+
+		analysisTimer = new Timer(200, e -> handleAnalysisTick());
+	}
+
+	private void startAnalysisAnimation() {
+		analyzeButton.setEnabled(false);
+		animationTick = 0;
+		analysisTimer.start();
+	}
+
+	private void handleAnalysisTick() {
+		animationTick++;
+		String[] dots = { "", ".", "..", "..." };
+		analyzeButton.setText("Analyzing" + dots[animationTick % 4]);
+
+		if (animationTick >= 10) {
+			analysisTimer.stop();
+			analyzeButton.setVisible(false);
+			if (currentPendingStats != null) {
+				applyStatsToUi(currentPendingStats);
+			}
+		}
 	}
 
 	public void showStats(SessionStats stats) {
-		// Guard against accidental navigation before any session is available.
 		if (stats == null) {
 			return;
 		}
+		this.currentPendingStats = stats;
+
+		// Reset UI to placeholders for the "0 results first" look
+		wpmValueLabel.setText("0");
+		accuracyValueLabel.setText("0%");
+		errorsValueLabel.setText("0");
+		timeValueLabel.setText("0s");
+		sessionQualityValueLabel.setText("-");
+		performanceGradeValueLabel.setText("-");
+
+		analyzeButton.setText("Examine Results");
+		analyzeButton.setEnabled(true);
+		analyzeButton.setVisible(true);
+	}
+
+	private void applyStatsToUi(SessionStats stats) {
 		wpmValueLabel.setText(String.valueOf(stats.getWpm()));
 		accuracyValueLabel.setText(stats.getAccuracy() + "%");
 		errorsValueLabel.setText(String.valueOf(stats.getErrors()));
