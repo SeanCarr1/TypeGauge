@@ -7,15 +7,14 @@ import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
-import javax.swing.ImageIcon;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 
 /**
  * Left-side icon navigation used across all screens.
@@ -93,18 +92,10 @@ public class SidebarPanel extends JPanel {
 			setActiveButton(testButton);
 			frame.showTest();
 		});
-		resultsButton.addActionListener(e -> {
-			setActiveButton(resultsButton);
-			frame.showResults();
-		});
-		accuracyButton.addActionListener(e -> {
-			setActiveButton(accuracyButton);
-			frame.showAccuracy();
-		});
-		feedbackButton.addActionListener(e -> {
-			setActiveButton(feedbackButton);
-			frame.showFeedback();
-		});
+		resultsButton.addActionListener(e -> tryNavigateToStats("results"));
+		accuracyButton.addActionListener(e -> tryNavigateToStats("accuracy"));
+		feedbackButton.addActionListener(e -> tryNavigateToStats("feedback"));
+
 		aboutButton.addActionListener(e -> {
 			setActiveButton(aboutButton);
 			frame.showAbout();
@@ -195,6 +186,18 @@ public class SidebarPanel extends JPanel {
 		repaint();
 	}
 
+	private void tryNavigateToStats(String screenId) {
+		if (frame.getCurrentStats() == null) {
+			frame.showSessionRequiredDialog();
+			return;
+		}
+		switch (screenId) {
+			case "results" -> frame.showResults();
+			case "accuracy" -> frame.showAccuracy();
+			case "feedback" -> frame.showFeedback();
+		}
+	}
+
 	public void setActiveScreen(String screenId) {
 		if ("main".equals(screenId)) {
 			setActiveButton(mainButton);
@@ -216,9 +219,6 @@ public class SidebarPanel extends JPanel {
 	}
 
 	public void updateForStatsAvailable(boolean hasStats) {
-		// Disable result-related routes until at least one test has finished.
-		resultsButton.setEnabled(hasStats);
-		accuracyButton.setEnabled(hasStats);
-		feedbackButton.setEnabled(hasStats);
+		// Access control is now handled dynamically in tryNavigateToStats to match FeatureHub logic.
 	}
 }
