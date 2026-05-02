@@ -232,10 +232,12 @@ public class TypeGaugeFrame extends JFrame {
 	}
 
 	public void showInstructions() {
+		instructionsPanel.resetScroll();
 		cardLayout.show(cardPanel, CARD_INSTRUCTIONS);
 	}
 
 	public void showCredits() {
+		creditsPanel.resetScroll();
 		cardLayout.show(cardPanel, CARD_CREDITS);
 	}
 
