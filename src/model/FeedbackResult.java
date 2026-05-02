@@ -1,20 +1,58 @@
 package model;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class FeedbackResult {
+	private final String headline;
+	private final String mainMessage;
+	private final TargetGoals goals;
+	private final String primaryFocus;
+	private final String secondaryFocus;
+	private final List<FeedbackCard> cards;
+	private final List<String> debugTags;
 
-	private final String title;
-	private final String message;
+	public FeedbackResult(String headline, String mainMessage, TargetGoals goals, String primaryFocus, String secondaryFocus, List<FeedbackCard> cards, List<String> debugTags) {
+		this.headline = headline;
+		this.mainMessage = mainMessage;
+		this.goals = goals;
+		this.primaryFocus = primaryFocus;
+		this.secondaryFocus = secondaryFocus;
+		this.cards = cards == null ? Collections.emptyList() : Collections.unmodifiableList(new ArrayList<>(cards));
+		this.debugTags = debugTags == null ? Collections.emptyList() : Collections.unmodifiableList(new ArrayList<>(debugTags));
+	}
 
+	// Backward compatibility constructor (legacy)
 	public FeedbackResult(String title, String message) {
-		this.title = title;
-		this.message = message;
+		this(title, message, null, null, null, null, null);
 	}
 
-	public String getTitle() {
-		return title;
+	public String getHeadline() {
+		return headline;
 	}
 
-	public String getMessage() {
-		return message;
+	public String getMainMessage() {
+		return mainMessage;
+	}
+
+	public TargetGoals getGoals() {
+		return goals;
+	}
+
+	public String getPrimaryFocus() {
+		return primaryFocus;
+	}
+
+	public String getSecondaryFocus() {
+		return secondaryFocus;
+	}
+
+	public List<FeedbackCard> getCards() {
+		return cards;
+	}
+
+	public List<String> getDebugTags() {
+		return debugTags;
 	}
 }
