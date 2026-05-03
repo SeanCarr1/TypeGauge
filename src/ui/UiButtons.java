@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.border.EmptyBorder;
 
@@ -54,4 +55,14 @@ public final class UiButtons {
 
 		return button;
 	}
+		// Add to UiButtons.java
+	public static JButton createDangerButton(String text) {
+		JButton button = new JButton(text);
+		button.setBackground(new Color(180, 60, 60));
+		button.setForeground(Color.WHITE);
+		button.setFocusPainted(false);
+		button.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+		button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		return button;
+}
 }
