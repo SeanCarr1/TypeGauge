@@ -162,8 +162,8 @@ public class HomePanel extends JPanel {
 			SwingConstants.RIGHT);
 		accuracyLabel.setForeground(Color.LIGHT_GRAY);
 
-		statsPreviewPanel.add(avgSpeedLabel);
-		statsPreviewPanel.add(accuracyLabel);
+		// statsPreviewPanel.add(avgSpeedLabel);
+		// statsPreviewPanel.add(accuracyLabel);
 
 		JPanel readyCard = new JPanel(new BorderLayout()) {
 			@Override
