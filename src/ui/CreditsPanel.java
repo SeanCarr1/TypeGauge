@@ -10,6 +10,7 @@ import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.net.URL;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -80,9 +81,10 @@ public class CreditsPanel extends JPanel {
 		profileHeader.setOpaque(false);
 		profileHeader.setAlignmentX(LEFT_ALIGNMENT);
 
-		// Load and scale 2x2.jpg avatar from src/images
-		ImageIcon rawIcon = new ImageIcon("src/images/2x2.jpg");
-		if (rawIcon.getIconWidth() > 0) {
+		// Load and scale 2x2.jpg avatar using classpath resource
+		URL avatarUrl = getClass().getResource("/images/2x2.jpg");
+		if (avatarUrl != null) {
+			ImageIcon rawIcon = new ImageIcon(avatarUrl);
 			Image scaled = rawIcon.getImage().getScaledInstance(120, 120, Image.SCALE_SMOOTH);
 			JLabel avatarLabel = new JLabel(new ImageIcon(scaled));
 			avatarLabel.setBorder(new EmptyBorder(0, 0, 0, 24));
