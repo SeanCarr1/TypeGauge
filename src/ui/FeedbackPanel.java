@@ -1,22 +1,12 @@
 package ui;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridLayout;
+import java.awt.*;
 import java.util.ResourceBundle;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
-import javax.swing.Timer;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import model.FeedbackContext;
 import model.FeedbackResult;
+import model.FeedbackService;
 import model.SessionStats;
 
 public class FeedbackPanel extends JPanel {
@@ -34,6 +24,8 @@ public class FeedbackPanel extends JPanel {
     private final JLabel nextAccuracyDeltaLabel;
 
     private JPanel suggestionsWrapper;
+    private final JComboBox<SessionStats> historySelector;
+    private final JTextField noteField;
 
     private final JButton analyzeButton;
     private SessionStats currentPendingStats;
@@ -92,10 +84,31 @@ public class FeedbackPanel extends JPanel {
         analyzeButton = UiButtons.createPrimaryButton("Generate Feedback");
         analyzeButton.setVisible(false);
         analyzeButton.addActionListener(e -> startAnalysisAnimation());
+        
+        historySelector = new JComboBox<>();
+        historySelector.setBackground(new Color(30, 30, 35));
+        historySelector.setForeground(Color.WHITE);
+        historySelector.addActionListener(e -> {
+            SessionStats selected = (SessionStats) historySelector.getSelectedItem();
+            if (selected != null) {
+                FeedbackResult result = FeedbackService.getFeedback(selected.getWpm(), selected.getAccuracy());
+                showFeedback(selected, result);
+            }
+        });
+
+        noteField = new JTextField(12);
+        noteField.setBackground(new Color(30, 30, 35));
+        noteField.setForeground(Color.WHITE);
+        noteField.setCaretColor(Color.WHITE);
+        noteField.setBorder(BorderFactory.createLineBorder(new Color(80, 80, 80)));
 
         JPanel headerButtons = new JPanel();
         headerButtons.setOpaque(false);
         headerButtons.add(instructionsButton);
+        headerButtons.add(new JLabel("History: "));
+        headerButtons.add(historySelector);
+        headerButtons.add(new JLabel("Note: "));
+        headerButtons.add(noteField);
         headerButtons.add(analyzeButton);
         headerButtons.add(backButton);
         headerButtons.add(returnToMainButton);
