@@ -10,6 +10,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.net.URL;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -76,7 +77,13 @@ public class TypeGaugeFrame extends JFrame {
 		setPreferredSize(new Dimension(1920, 1000));
 
 		// Load background image for the entire app
-		backgroundImage = new ImageIcon("src/images/photo-1550751827-4bd374c3f58b.png").getImage();
+		URL bgUrl = getClass().getResource("/images/photo-1550751827-4bd374c3f58b.png");
+		if (bgUrl != null) {
+			backgroundImage = new ImageIcon(bgUrl).getImage();
+		} else {
+			backgroundImage = null;
+		}
+		
 		backgroundPanel = new BackgroundPanel(backgroundImage);
 		backgroundPanel.setLayout(new BorderLayout());
 
