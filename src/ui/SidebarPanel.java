@@ -33,7 +33,6 @@ public class SidebarPanel extends JPanel {
 	private final JButton resultsButton;
 	private final JButton accuracyButton;
 	private final JButton feedbackButton;
-	private final JButton aboutButton;
 	private JButton activeButton;
 
 	public SidebarPanel(TypeGaugeFrame frame) {
@@ -64,7 +63,6 @@ public class SidebarPanel extends JPanel {
 		resultsButton = createNavButton("/ui/icons/nav_check.png");
 		accuracyButton = createNavButton("/ui/icons/nav_bars.png");
 		feedbackButton = createNavButton("/ui/icons/nav_history.png");
-		aboutButton = createNavButton("/ui/icons/nav_info.png");
 
 		mainButton.setToolTipText("Main menu");
 		featureHubButton.setToolTipText("Feature Hub");
@@ -73,7 +71,6 @@ public class SidebarPanel extends JPanel {
 		resultsButton.setToolTipText("Results");
 		accuracyButton.setToolTipText("Accuracy");
 		feedbackButton.setToolTipText("Feedback");
-		aboutButton.setToolTipText("About TypeGauge");
 
 		mainButton.addActionListener(e -> {
 			setActiveButton(mainButton);
@@ -95,11 +92,6 @@ public class SidebarPanel extends JPanel {
 		accuracyButton.addActionListener(e -> tryNavigateToStats("accuracy"));
 		feedbackButton.addActionListener(e -> tryNavigateToStats("feedback"));
 
-		aboutButton.addActionListener(e -> {
-			setActiveButton(aboutButton);
-			frame.showAbout();
-		});
-
 		navPanel.add(wrapNavButton(mainButton));
 		navPanel.add(Box.createVerticalStrut(40));
 		navPanel.add(wrapNavButton(featureHubButton));
@@ -114,8 +106,6 @@ public class SidebarPanel extends JPanel {
 		navPanel.add(Box.createVerticalStrut(40));
 		navPanel.add(wrapNavButton(feedbackButton));
 		navPanel.add(Box.createVerticalStrut(40));
-		navPanel.add(wrapNavButton(aboutButton));
-
 		topPanel.add(navPanel, BorderLayout.CENTER);
 
 		add(topPanel, BorderLayout.NORTH);
@@ -205,8 +195,6 @@ public class SidebarPanel extends JPanel {
 			setActiveButton(accuracyButton);
 		} else if ("feedback".equals(screenId)) {
 			setActiveButton(feedbackButton);
-		} else if ("about".equals(screenId)) {
-			setActiveButton(aboutButton);
 		}
 	}
 
