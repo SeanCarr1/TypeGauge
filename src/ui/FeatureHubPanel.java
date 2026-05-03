@@ -74,7 +74,7 @@ public class FeatureHubPanel extends JPanel {
 		JPanel cardsPanel = new JPanel(new GridLayout(1, 5, 16, 0));
 		cardsPanel.setOpaque(false);
 		// Keep cards compact so the row does not stretch to the bottom.
-		cardsPanel.setPreferredSize(new Dimension(0, 220));
+		cardsPanel.setPreferredSize(new Dimension(0, 280));
 
 		cardsPanel.add(createFeatureCard(
 			"<html>Difficulty<br>Selection</html>",
@@ -83,25 +83,25 @@ public class FeatureHubPanel extends JPanel {
 			() -> frame.showHome()));
 
 		cardsPanel.add(createFeatureCard(
-			"Test",
+			"<html>Typing Test</html>",
 			"Open the typing test and start or continue a session.",
 			"/ui/icons/nav_target.png",
 			() -> frame.showTest()));
 
 		cardsPanel.add(createFeatureCard(
-			"Results Examiner",
+			"<html>Results<br>Examiner</html>",
 			"View your session metrics and summary dashboard.",
 			"/ui/icons/nav_check.png",
 			() -> openStatsScreen("results")));
 
 		cardsPanel.add(createFeatureCard(
-			"Accuracy Analyzer",
+			"<html>Accuracy<br>Analyzer</html>",
 			"Inspect character-level precision and error patterns.",
 			"/ui/icons/nav_bars.png",
 			() -> openStatsScreen("accuracy")));
 
 		cardsPanel.add(createFeatureCard(
-			"Feedback Generator",
+			"<html>Feedback<br>Generator</html>",
 			"Read coaching guidance and next practice goals.",
 			"/ui/icons/nav_history.png",
 			() -> openStatsScreen("feedback")));
@@ -150,7 +150,7 @@ public class FeatureHubPanel extends JPanel {
 
 		JLabel titleLabel = new JLabel(title);
 		titleLabel.setForeground(Color.WHITE);
-		titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 22f));
+		titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 20f));
 		titleLabel.setAlignmentX(LEFT_ALIGNMENT);
 		content.add(titleLabel);
 		content.add(Box.createVerticalStrut(8));
