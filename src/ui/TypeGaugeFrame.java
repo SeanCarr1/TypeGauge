@@ -406,16 +406,16 @@ public class TypeGaugeFrame extends JFrame {
 	public void showResultsInstructions() {
 		String body = "<html><div style='width:560px;'>"
 			+ "<ol style='margin-top:8px;'>"
-			+ "<li>Complete a typing session to populate this screen with your latest stats.</li>"
-			+ "<li>Read the top cards: <b>Speed</b>, <b>Accuracy</b>, <b>Errors</b>, and <b>Time</b>.</li>"
-			+ "<li>Use <b>Detailed Analysis</b> to open the Accuracy breakdown.</li>"
-			+ "<li>Use <b>Full Report</b> to open the Feedback screen.</li>"
-			+ "<li>Use <b>Retry Test</b> for a new run, or <b>Return to Main</b> to leave this feature.</li>"
+			+ "<li>Complete a typing session to populate this screen with your latest stats instantly.</li>"
+			+ "<li>Review core metrics at the top and detailed quality/grade assessments below.</li>"
+			+ "<li>Navigate past sessions using the <b>Session History</b> dropdown to track your improvement.</li>"
+			+ "<li>Manage <b>Session Notes</b> to record personal observations (Add, Edit, or Clear).</li>"
+			+ "<li>Use <b>Return</b> buttons to go back to the Feature Hub or Main Menu.</li>"
 			+ "<li>Press <b>Close</b> to exit this popup.</li>"
 			+ "</ol>"
 			+ "</div></html>";
 
-		showInstructionsDialog("How to use Results Feature", body);
+		showInstructionsDialog("How to use Results Examiner", body);
 	}
 
 	public void showSessionRequiredDialog() {
@@ -433,6 +433,8 @@ public class TypeGaugeFrame extends JFrame {
 			+ "<li>Review the color-coded text: <b>green</b> for correct, <b>red</b> for mistakes, <b>·</b> for missed spaces.</li>"
 			+ "<li>See strengths and error hotspots by category.</li>"
 			+ "<li>Use <b>Return</b> buttons to go back to Results or Main.</li>"
+			+ "<li>Set <b>Improvement Goals</b> to challenge yourself; indicators show if you met your accuracy targets.</li>"
+			+ "<li>Use <b>Return</b> buttons to go back to the Feature Hub or Main Menu.</li>"
 			+ "<li>Press <b>Close</b> to exit this popup.</li>"
 			+ "</ol>" 
 			+ "</div></html>";
