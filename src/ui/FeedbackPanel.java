@@ -24,20 +24,12 @@ public class FeedbackPanel extends JPanel {
     private final JLabel nextAccuracyDeltaLabel;
 
     private JPanel suggestionsWrapper;
-    private final JComboBox<SessionStats> historySelector;
-    private final JTextField noteField;
-
-    private final JButton analyzeButton;
-    private SessionStats currentPendingStats;
-    private FeedbackResult currentPendingFeedback;
-    private int animationTick = 0;
-    private final Timer analysisTimer;
 
     public FeedbackPanel(TypeGaugeFrame frame) {
         this.frame = frame;
 
         setLayout(new BorderLayout());
-        setBorder(new EmptyBorder(20, 400, 40, 400));
+        setBorder(new EmptyBorder(100, 300, 40, 300));
         setOpaque(false);
 
         // Header: Self-Assessment & Feedback / Expert Guidance + Back button
@@ -67,7 +59,7 @@ public class FeedbackPanel extends JPanel {
         header.add(headerLeft, BorderLayout.WEST);
 
         JButton backButton = UiButtons.createPrimaryButton(
-            "Return to Dashboad"
+            "Return to Dashboard"
         );
         backButton.addActionListener(e -> frame.showFeatureHub());
         JButton returnToMainButton = UiButtons.createPrimaryButton(
@@ -81,35 +73,9 @@ public class FeedbackPanel extends JPanel {
             frame.showFeedbackInstructions()
         );
 
-        analyzeButton = UiButtons.createPrimaryButton("Generate Feedback");
-        analyzeButton.setVisible(false);
-        analyzeButton.addActionListener(e -> startAnalysisAnimation());
-        
-        historySelector = new JComboBox<>();
-        historySelector.setBackground(new Color(30, 30, 35));
-        historySelector.setForeground(Color.WHITE);
-        historySelector.addActionListener(e -> {
-            SessionStats selected = (SessionStats) historySelector.getSelectedItem();
-            if (selected != null) {
-                FeedbackResult result = FeedbackService.getFeedback(selected.getWpm(), selected.getAccuracy());
-                showFeedback(selected, result);
-            }
-        });
-
-        noteField = new JTextField(12);
-        noteField.setBackground(new Color(30, 30, 35));
-        noteField.setForeground(Color.WHITE);
-        noteField.setCaretColor(Color.WHITE);
-        noteField.setBorder(BorderFactory.createLineBorder(new Color(80, 80, 80)));
-
         JPanel headerButtons = new JPanel();
         headerButtons.setOpaque(false);
         headerButtons.add(instructionsButton);
-        headerButtons.add(new JLabel("History: "));
-        headerButtons.add(historySelector);
-        headerButtons.add(new JLabel("Note: "));
-        headerButtons.add(noteField);
-        headerButtons.add(analyzeButton);
         headerButtons.add(backButton);
         headerButtons.add(returnToMainButton);
         header.add(headerButtons, BorderLayout.EAST);
@@ -124,7 +90,7 @@ public class FeedbackPanel extends JPanel {
         // Row: left analysis card + right goal/summary column
         JPanel center = new JPanel(new BorderLayout());
         center.setOpaque(false);
-        center.setMaximumSize(new Dimension(Integer.MAX_VALUE, 420));
+        center.setMaximumSize(new Dimension(Integer.MAX_VALUE, 500));
 
         // Left: Personalized Analysis card
         JPanel analysisCard = new GlassCardPanel(
@@ -139,7 +105,7 @@ public class FeedbackPanel extends JPanel {
                     1,
                     true
                 ),
-                new EmptyBorder(16, 16, 16, 16)
+                new EmptyBorder(20, 24, 20, 24)
             )
         );
 
@@ -153,32 +119,29 @@ public class FeedbackPanel extends JPanel {
 
         JPanel analysisCenter = new JPanel(new BorderLayout());
         analysisCenter.setOpaque(false);
-        analysisCenter.setBorder(new EmptyBorder(12, 0, 0, 0));
+        analysisCenter.setBorder(new EmptyBorder(16, 0, 0, 0));
 
         analysisIntroLabel = new JLabel("", SwingConstants.LEFT);
         analysisIntroLabel.setForeground(new Color(200, 200, 200));
         analysisIntroLabel.setFont(
             analysisIntroLabel.getFont().deriveFont(16f)
         );
-        analysisIntroLabel.setBorder(new EmptyBorder(0, 0, 12, 0));
+        analysisIntroLabel.setBorder(new EmptyBorder(0, 0, 16, 0));
         analysisCenter.add(analysisIntroLabel, BorderLayout.NORTH);
 
         feedbackMessageLabel = new JLabel("", SwingConstants.LEFT);
-        feedbackMessageLabel.setForeground(new Color(220, 220, 220));
+        feedbackMessageLabel.setForeground(new Color(90, 150, 255));
         feedbackMessageLabel.setFont(
-            feedbackMessageLabel.getFont().deriveFont(18f)
+            feedbackMessageLabel.getFont().deriveFont(Font.ITALIC, 22f)
         );
-        feedbackMessageLabel.setBorder(
-            BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(60, 60, 80)),
-                new EmptyBorder(12, 12, 12, 12)
-            )
-        );
+        feedbackMessageLabel.setBorder(new EmptyBorder(0, 0, 20, 0));
         analysisCenter.add(feedbackMessageLabel, BorderLayout.CENTER);
 
         // Suggestions wrapper is initialized here, but content is set in showFeedback
         suggestionsWrapper = new JPanel(new BorderLayout());
         suggestionsWrapper.setOpaque(false);
+        suggestionsWrapper.setBorder(new EmptyBorder(12, 0, 0, 0));
+
         JLabel suggestionsTitle = new JLabel(
             STRINGS.getString("feedback.suggestions.title"),
             SwingConstants.LEFT
@@ -195,7 +158,8 @@ public class FeedbackPanel extends JPanel {
         // Right column: Goal Setting and Summary of Strengths
         JPanel rightColumn = new JPanel(new BorderLayout());
         rightColumn.setOpaque(false);
-        rightColumn.setBorder(new EmptyBorder(0, 16, 0, 0));
+        rightColumn.setBorder(new EmptyBorder(0, 24, 0, 0));
+        rightColumn.setPreferredSize(new Dimension(380, 0));
 
         // Goal Setting card
         JPanel goalCard = new GlassCardPanel(24, new Color(25, 25, 25, 160));
@@ -242,7 +206,7 @@ public class FeedbackPanel extends JPanel {
         nextAccuracyLabel.setForeground(new Color(180, 180, 180));
         nextAccuracyLabel.setFont(nextAccuracyLabel.getFont().deriveFont(12f));
         nextAccuracyValueLabel = new JLabel("0%", SwingConstants.RIGHT);
-        nextAccuracyValueLabel.setForeground(Color.WHITE);
+        nextAccuracyValueLabel.setForeground(new Color(0, 220, 140));
         nextAccuracyValueLabel.setFont(
             nextAccuracyValueLabel.getFont().deriveFont(30f)
         );
@@ -263,11 +227,15 @@ public class FeedbackPanel extends JPanel {
 
         goalCard.add(goalBody, BorderLayout.CENTER);
 
+        JPanel practiceWrapper = new JPanel(new BorderLayout());
+        practiceWrapper.setOpaque(false);
+        practiceWrapper.setBorder(new EmptyBorder(12, 0, 0, 0));
         JButton practiceButton = UiButtons.createPrimaryButton(
             "Start Practice"
         );
         practiceButton.addActionListener(e -> frame.retry());
-        goalCard.add(practiceButton, BorderLayout.SOUTH);
+        practiceWrapper.add(practiceButton, BorderLayout.CENTER);
+        goalCard.add(practiceWrapper, BorderLayout.SOUTH);
 
         rightColumn.add(goalCard, BorderLayout.NORTH);
 
@@ -280,28 +248,6 @@ public class FeedbackPanel extends JPanel {
         content.add(Box.createVerticalGlue());
 
         add(content, BorderLayout.CENTER);
-
-        analysisTimer = new Timer(200, e -> handleAnalysisTick());
-    }
-
-    private void startAnalysisAnimation() {
-        analyzeButton.setEnabled(false);
-        animationTick = 0;
-        analysisTimer.start();
-    }
-
-    private void handleAnalysisTick() {
-        animationTick++;
-        String[] dots = { "", ".", "..", "..." };
-        analyzeButton.setText("Analyzing" + dots[animationTick % 4]);
-
-        if (animationTick >= 10) {
-            analysisTimer.stop();
-            analyzeButton.setVisible(false);
-            if (currentPendingStats != null && currentPendingFeedback != null) {
-                applyFeedbackToUi(currentPendingStats, currentPendingFeedback);
-            }
-        }
     }
 
     private JPanel createSuggestionCard(
@@ -486,23 +432,8 @@ public class FeedbackPanel extends JPanel {
         if (stats == null || feedback == null) {
             return;
         }
-        this.currentPendingStats = stats;
-        this.currentPendingFeedback = feedback;
 
-        // Reset UI to placeholders for the "0 results first" look
-        analysisIntroLabel.setText("Analysis ready...");
-        feedbackMessageLabel.setText("Click 'Analyze' to generate guidance.");
-        suggestionsWrapper.removeAll();
-        suggestionsWrapper.revalidate();
-        suggestionsWrapper.repaint();
-        nextSpeedValueLabel.setText("0");
-        nextAccuracyValueLabel.setText("0%");
-        nextSpeedDeltaLabel.setText("+0 WPM");
-        nextAccuracyDeltaLabel.setText("+0%");
-
-        analyzeButton.setText("Analyze");
-        analyzeButton.setEnabled(true);
-        analyzeButton.setVisible(true);
+        applyFeedbackToUi(stats, feedback);
     }
 
     private void applyFeedbackToUi(SessionStats stats, FeedbackResult feedback) {
