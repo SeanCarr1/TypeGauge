@@ -89,19 +89,19 @@ public class FeatureHubPanel extends JPanel {
 			() -> frame.showTest()));
 
 		cardsPanel.add(createFeatureCard(
-			"Results",
+			"Results Examiner",
 			"View your session metrics and summary dashboard.",
 			"/ui/icons/nav_check.png",
 			() -> openStatsScreen("results")));
 
 		cardsPanel.add(createFeatureCard(
-			"Accuracy",
+			"Accuracy Analyzer",
 			"Inspect character-level precision and error patterns.",
 			"/ui/icons/nav_bars.png",
 			() -> openStatsScreen("accuracy")));
 
 		cardsPanel.add(createFeatureCard(
-			"Feedback",
+			"Feedback Generator",
 			"Read coaching guidance and next practice goals.",
 			"/ui/icons/nav_history.png",
 			() -> openStatsScreen("feedback")));
