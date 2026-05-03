@@ -74,7 +74,7 @@ public class InstructionsPanel extends JPanel {
 
 		stepContainer.add(createStepCard(
 			"01. Difficulty Selection",
-			"Navigate to Home and choose between Beginner, Intermediate, or Advanced texts. Each level introduces complex punctuation and technical vocabulary.",
+			"From the Feature Hub, open Difficulty Selection to choose between Beginner, Intermediate, or Advanced levels. Each level introduces unique technical vocabulary.",
 			new Color(90, 150, 255)
 		));
 		stepContainer.add(Box.createVerticalStrut(16));
@@ -88,14 +88,14 @@ public class InstructionsPanel extends JPanel {
 
 		stepContainer.add(createStepCard(
 			"03. Results Examiner",
-			"Once finished, use the 'Examine Results' and 'Analyze' buttons. The engine will process your session data to visualize mistake patterns and speed consistency.",
+			"Your results are processed instantly. Review detailed performance metrics, browse your session history to track growth, and record observations in the notes section.",
 			new Color(255, 215, 0)
 		));
 		stepContainer.add(Box.createVerticalStrut(16));
 
 		stepContainer.add(createStepCard(
 			"04. Accuracy Analyzer",
-			"Drill down into the Accuracy Analyzer to see character-level breakdowns. Identify your 'Hotspots'—the specific keys where you lose momentum.",
+			"Drill down into the Accuracy Analyzer to see character-level breakdowns. Identify error hotspots and set custom improvement goals to challenge your precision.",
 			new Color(240, 80, 80)
 		));
 		stepContainer.add(Box.createVerticalStrut(16));
