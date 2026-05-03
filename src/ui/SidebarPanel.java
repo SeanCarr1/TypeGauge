@@ -34,7 +34,6 @@ public class SidebarPanel extends JPanel {
 	private final JButton accuracyButton;
 	private final JButton feedbackButton;
 	private final JButton aboutButton;
-	private final JButton settingsButton;
 	private JButton activeButton;
 
 	public SidebarPanel(TypeGaugeFrame frame) {
@@ -120,13 +119,6 @@ public class SidebarPanel extends JPanel {
 		topPanel.add(navPanel, BorderLayout.CENTER);
 
 		add(topPanel, BorderLayout.NORTH);
-
-		settingsButton = createNavButton("/ui/icons/nav_settings.png");
-		settingsButton.setToolTipText("Settings");
-		JPanel bottomPanel = new JPanel(new BorderLayout());
-		bottomPanel.setOpaque(false);
-		bottomPanel.add(wrapNavButton(settingsButton), BorderLayout.SOUTH);
-		add(bottomPanel, BorderLayout.SOUTH);
 	}
 
 	private JButton createNavButton(String iconPath) {
